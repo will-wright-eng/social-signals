@@ -1,5 +1,5 @@
 [project]
-name = "ssig"
+name = "sosig"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
@@ -27,7 +27,7 @@ dev-dependencies = []
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ssig"]
+packages = ["src/sosig"]
 
 [project.scripts]
-ssig = "ssig:cli"
+sosig = "sosig:cli"

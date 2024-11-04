@@ -3,8 +3,8 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
-from .models import Repository
-from ..utils.ghmetrics_utils import RepoMetrics
+from ..core.models import Repository
+from ..utils.gh_utils import RepoMetrics
 
 
 class RepositoryDAO:

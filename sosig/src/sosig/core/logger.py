@@ -1,5 +1,6 @@
-import sys
 import logging
+
+from rich.logging import RichHandler
 
 from .config import settings
 
@@ -10,24 +11,19 @@ def get_logger(name: str, debug: bool = None):
     Uses settings from config if debug not explicitly provided.
     """
     debug = settings.logging.DEBUG if debug is None else debug
-
-    if debug:
-        log_level = logging.DEBUG
-    else:
-        log_level = logging.INFO
+    log_level = logging.DEBUG if debug else logging.INFO
 
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
 
-    # Stream handler (console output)
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setLevel(log_level)
+    rich_handler = RichHandler(rich_tracebacks=True)
+    rich_handler.setLevel(log_level)
 
-    formatter = logging.Formatter(settings.logging.LOG_FORMAT)
-    stream_handler.setFormatter(formatter)
+    formatter = logging.Formatter("%(message)s")
+    rich_handler.setFormatter(formatter)
 
     if not logger.handlers:
-        logger.addHandler(stream_handler)
+        logger.addHandler(rich_handler)
 
     return logger
 

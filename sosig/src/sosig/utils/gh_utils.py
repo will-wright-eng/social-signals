@@ -10,13 +10,27 @@ from ..core.logger import log
 class GitCommandError(Exception):
     """Raised when a git command fails"""
 
-    pass
+    def __init__(self, message: str, command: str = None, stderr: str = None):
+        self.command = command
+        self.stderr = stderr
+        super().__init__(
+            f"Git command failed: {message}"
+            + (f"\nCommand: {command}" if command else "")
+            + (f"\nError: {stderr}" if stderr else ""),
+        )
 
 
 class GitHubAPIError(Exception):
     """Raised when GitHub API operations fail"""
 
-    pass
+    def __init__(self, message: str, endpoint: str = None, status_code: int = None):
+        self.endpoint = endpoint
+        self.status_code = status_code
+        super().__init__(
+            f"GitHub API error: {message}"
+            + (f"\nEndpoint: {endpoint}" if endpoint else "")
+            + (f"\nStatus Code: {status_code}" if status_code else ""),
+        )
 
 
 @dataclass
@@ -70,7 +84,11 @@ class GitHubAnalyzer:
         except subprocess.CalledProcessError as e:
             log.error(f"Command failed: {' '.join(command)}")
             log.error(f"Error: {e.stderr}")
-            raise GitCommandError(f"Git command failed: {e.stderr}")
+            raise GitCommandError(
+                message="Command execution failed",
+                command=" ".join(command),
+                stderr=e.stderr,
+            )
 
     def get_repo_age(self) -> float:
         """Calculate repository age in days"""
@@ -122,9 +140,28 @@ class GitHubAnalyzer:
         try:
             repo_info = self._run_command(["gh", "repo", "view", "--json", "stargazerCount"])
             return json.loads(repo_info)["stargazerCount"]
-        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
-            log.warning(f"Could not fetch star count: {str(e)}")
-            raise GitHubAPIError("Failed to fetch repository stars")
+        except subprocess.CalledProcessError as e:
+            msg = f"Could not fetch star count: {str(e)}"
+            log.warning(msg)
+            raise GitHubAPIError(
+                message=msg,
+                endpoint="repo view",
+                status_code=e.returncode,
+            )
+        except json.JSONDecodeError as e:
+            msg = f"Invalid JSON response from GitHub API: {str(e)}"
+            log.warning(msg)
+            raise GitHubAPIError(
+                message=msg,
+                endpoint="repo view",
+            )
+        except KeyError as e:
+            msg = f"Star count not found in GitHub API response: {str(e)}"
+            log.warning(msg)
+            raise GitHubAPIError(
+                message=msg,
+                endpoint="repo view",
+            )
 
     def get_commit_count(self) -> int:
         """Get total number of commits"""
@@ -181,16 +218,3 @@ class RepositoryStorage(Protocol):
     def get_by_path(self, path: str) -> Optional[RepoMetrics]: ...
     def save_metrics(self, metrics: RepoMetrics) -> RepoMetrics: ...
     def get_all(self, sort_by: str = "social_signal") -> List[RepoMetrics]: ...
-
-
-def analyze_repos(repo_paths: List[str]) -> List[RepoMetrics]:
-    """Analyze multiple repositories and return their metrics"""
-    results = []
-    for repo_path in repo_paths:
-        try:
-            analyzer = GitHubAnalyzer(repo_path)
-            metrics = analyzer.analyze()
-            results.append(metrics)
-        except (GitCommandError, GitHubAPIError) as e:
-            log.error(f"Failed to analyze repo {repo_path}: {str(e)}")
-    return results

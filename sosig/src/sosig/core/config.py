@@ -1,7 +1,53 @@
 import os
 from typing import Dict, Optional
+from pathlib import Path
 
 from pydantic import Field, BaseModel
+from rich.console import Console
+
+console = Console()
+
+PROJECT_NAME = "sosig"
+
+
+def get_data_dir() -> Path:
+    """Get XDG data directory for the application"""
+    xdg_data_home = os.environ.get("XDG_DATA_HOME", "")
+    if xdg_data_home:
+        base_dir = Path(xdg_data_home)
+    else:
+        base_dir = Path.home() / ".local" / "share"
+
+    data_dir = base_dir / PROJECT_NAME
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return data_dir
+
+
+def get_config_dir() -> Path:
+    """Get XDG config directory for the application"""
+    xdg_config_home = os.environ.get("XDG_CONFIG_HOME", "")
+    if xdg_config_home:
+        base_dir = Path(xdg_config_home)
+    else:
+        base_dir = Path.home() / ".config"
+
+    config_dir = base_dir / PROJECT_NAME
+    config_dir.mkdir(parents=True, exist_ok=True)
+    return config_dir
+
+
+class DatabaseConfig(BaseModel):
+    """Database configuration settings"""
+
+    URI: str = Field(default="sqlite:///github_metrics.db")
+    filename: str = "github_metrics.db"
+    CACHE_TTL_HOURS: int = Field(default=24)
+
+    @property
+    def URI(self) -> str:
+        """Get SQLAlchemy connection string"""
+        db_path = get_data_dir() / self.filename
+        return f"sqlite:///{db_path}"
 
 
 class LoggingConfig(BaseModel):
@@ -32,11 +78,6 @@ class MetricsConfig(BaseModel):
     )
 
 
-class DatabaseConfig(BaseModel):
-    URI: str = Field(default="sqlite:///github_metrics.db")
-    CACHE_TTL_HOURS: int = Field(default=24)
-
-
 class APIConfig(BaseModel):
     OPENAI_MODEL: str = Field(default="gpt-4")
     OPENAI_API_KEY: str = Field(default=os.environ.get("OPENAI_API_KEY"))
@@ -45,6 +86,7 @@ class APIConfig(BaseModel):
 class Config(BaseModel):
     """Main configuration class"""
 
+    PROJECT_NAME: str = PROJECT_NAME
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     metrics: MetricsConfig = Field(default_factory=MetricsConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)

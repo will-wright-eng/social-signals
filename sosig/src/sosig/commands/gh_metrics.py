@@ -3,14 +3,14 @@ from rich.table import Table
 from rich.console import Console
 
 from ..core import db, config, models
+from ..utils.gh_analyzer import RepositoryAnalyzer
 from ..utils.gh_repo_dao import RepositoryDAO
-from ..utils.ghmetrics_analyzer import RepositoryAnalyzer
 
-ghmetrics_cmds = typer.Typer()
+gh_cmds = typer.Typer()
 console = Console()
 
 
-@ghmetrics_cmds.callback()
+@gh_cmds.callback()
 def callback():
     """
     Analyze GitHub repositories for social signals and community health metrics.
@@ -18,7 +18,7 @@ def callback():
     pass
 
 
-@ghmetrics_cmds.command()
+@gh_cmds.command()
 def analyze(
     repo_paths: list[str] = typer.Argument(..., help="Paths to local git repositories"),
     force: bool = typer.Option(False, "--force", "-f", help="Force reanalysis of repositories"),
@@ -66,7 +66,7 @@ def analyze(
     console.print(table)
 
 
-@ghmetrics_cmds.command()
+@gh_cmds.command()
 def list_repos(
     db_path: str = typer.Option(None, "--db", help="SQLite database path"),
     sort_by: str = typer.Option("social_signal", "--sort", "-s", help="Sort by: social_signal, stars, age_days"),
@@ -99,18 +99,3 @@ def list_repos(
         )
 
     console.print(table)
-
-
-# if __name__ == "__main__":
-#     # Example usage
-#     repos = ["/path/to/repo1", "/path/to/repo2"]
-#     metrics = analyze_repos(repos)
-
-#     for repo in metrics:
-#         print(f"\nRepository: {repo.name}")
-#         print(f"Age: {repo.age_days:.1f} days")
-#         print(f"Update Frequency: {repo.update_frequency_days:.1f} days")
-#         print(f"Contributors: {repo.contributor_count}")
-#         print(f"Stars: {repo.stars}")
-#         print(f"Commits: {repo.commit_count}")
-#         print(f"Social Signal Score: {repo.social_signal:.1f}/100")

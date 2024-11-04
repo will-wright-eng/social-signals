@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import Field, BaseModel
 from rich.console import Console
 
+from ..core.config import PROJECT_NAME
 from ..core.logger import log
 
 console = Console()
@@ -64,7 +65,7 @@ class ConfigManager:
     """Manages configuration file handling"""
 
     def __init__(self):
-        self.config_dir = Path.home() / ".config" / "ssig"
+        self.config_dir = Path.home() / ".config" / PROJECT_NAME
         self.config_file = self.config_dir / "config.json"
         self.config: Config = self._load_config()
 

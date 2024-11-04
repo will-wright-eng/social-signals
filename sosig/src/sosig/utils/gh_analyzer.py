@@ -1,10 +1,10 @@
 import time
 
 from ..core import models
-from ..core.dao import RepositoryDAO
+from .gh_utils import GitHubAnalyzer
+from .gh_repo_dao import RepositoryDAO
 from ..core.config import settings
 from ..core.logger import log
-from .ghmetrics_analyzer import GitHubAnalyzer
 
 
 class RepositoryAnalyzer:
