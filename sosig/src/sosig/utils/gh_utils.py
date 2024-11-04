@@ -181,8 +181,8 @@ class GitHubAnalyzer:
         """Calculate weighted social signal score"""
         return sum(self.WEIGHTS[key] * value for key, value in normalized_metrics.items()) * 100
 
-    def analyze(self) -> RepoMetrics:
-        """Perform complete repository analysis"""
+    def calculate_social_signal(self) -> RepoMetrics:
+        """Perform complete repository analysis and calculate social signal score"""
         try:
             raw_metrics = {
                 "age_days": self.get_repo_age(),

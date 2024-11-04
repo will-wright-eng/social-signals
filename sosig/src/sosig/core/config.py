@@ -39,7 +39,6 @@ def get_config_dir() -> Path:
 class DatabaseConfig(BaseModel):
     """Database configuration settings"""
 
-    URI: str = Field(default="sqlite:///github_metrics.db")
     filename: str = "github_metrics.db"
     CACHE_TTL_HOURS: int = Field(default=24)
 
@@ -47,7 +46,7 @@ class DatabaseConfig(BaseModel):
     def URI(self) -> str:
         """Get SQLAlchemy connection string"""
         db_path = get_data_dir() / self.filename
-        return f"sqlite:///{db_path}"
+        return str(f"sqlite:///{db_path}")
 
 
 class LoggingConfig(BaseModel):
