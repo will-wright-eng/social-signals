@@ -1,4 +1,5 @@
 import os
+import math
 from typing import Dict, Optional
 from pathlib import Path
 
@@ -57,6 +58,8 @@ class LoggingConfig(BaseModel):
 
 
 class MetricsConfig(BaseModel):
+    """Configuration for repository metrics calculation"""
+
     weights: Dict[str, float] = Field(
         default={
             "age": 0.2,
@@ -65,7 +68,9 @@ class MetricsConfig(BaseModel):
             "stars": 0.2,
             "commits": 0.1,
         },
+        description="Weights for each metric in social signal calculation",
     )
+
     normalizers: Dict[str, float] = Field(
         default={
             "max_age_days": 1825,  # 5 years
@@ -74,7 +79,13 @@ class MetricsConfig(BaseModel):
             "max_stars": 1000,
             "max_commits": 1000,
         },
+        description="Maximum values for normalizing each metric",
     )
+
+    def validate_weights(self) -> None:
+        """Ensure weights sum to 1.0"""
+        if not math.isclose(sum(self.weights.values()), 1.0, rel_tol=1e-9):
+            raise ValueError("Metric weights must sum to 1.0")
 
 
 class APIConfig(BaseModel):

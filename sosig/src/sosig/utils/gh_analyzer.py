@@ -1,7 +1,7 @@
 import time
 
 from ..core import models
-from .gh_utils import GitHubAnalyzer
+from .gh_utils import GitHubAnalyzerImpl
 from .gh_repo_dao import RepositoryDAO
 from ..core.config import settings
 from ..core.logger import log
@@ -20,7 +20,7 @@ class RepositoryAnalyzer:
                 log.info(f"Using cached analysis for {repo_path}")
                 return existing_repo
 
-        analyzer = GitHubAnalyzer(repo_path)
+        analyzer = GitHubAnalyzerImpl(repo_path)
         metrics = analyzer.calculate_social_signal()
 
         return self.repository_dao.save_metrics(repo_path, metrics)

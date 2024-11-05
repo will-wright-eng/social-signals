@@ -68,7 +68,8 @@ main() {
     check_dependencies
 
     local username="$1"
-    local output_dir="${2:-$(pwd)}"
+    local base_dir="${2:-$(pwd)}"
+    local output_dir="$base_dir/results/$username"
 
     # Create output directory if it doesn't exist
     mkdir -p "$output_dir"

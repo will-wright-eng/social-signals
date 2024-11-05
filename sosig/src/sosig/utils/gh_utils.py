@@ -1,10 +1,16 @@
 import json
 import time
 import subprocess
-from typing import List, Optional, Protocol
-from dataclasses import dataclass
+from typing import List
 
+from ..core.config import settings
 from ..core.logger import log
+from ..core.interfaces import (
+    RepoMetrics,
+    CommandRunner,
+    GitHubAnalyzer,
+    MetricsNormalizer,
+)
 
 
 class GitCommandError(Exception):
@@ -33,66 +39,44 @@ class GitHubAPIError(Exception):
         )
 
 
-@dataclass
-class RepoMetrics:
-    """Data class to store repository metrics"""
+class DefaultCommandRunner(CommandRunner):
+    """Default implementation of command runner"""
 
-    name: str
-    path: str
-    age_days: float
-    update_frequency_days: float
-    contributor_count: int
-    stars: int
-    commit_count: int
-    social_signal: float
-    last_analyzed: float = 0.0
-
-
-class GitHubAnalyzer:
-    """Analyzes GitHub repositories to calculate social signal metrics"""
-
-    # Normalization and weight constants
-    MAX_AGE_DAYS = 1825  # 5 years
-    MAX_UPDATE_FREQ = 30
-    MAX_CONTRIBUTORS = 50
-    MAX_STARS = 1000
-    MAX_COMMITS = 1000
-
-    WEIGHTS = {
-        "age": 0.2,
-        "update_frequency": 0.3,
-        "contributors": 0.2,
-        "stars": 0.2,
-        "commits": 0.1,
-    }
-
-    def __init__(self, repo_path: str):
-        """Initialize analyzer with local repository path"""
-        self.repo_path = repo_path
-
-    def _run_command(self, command: List[str]) -> str:
-        """Execute a shell command and return its output"""
+    def run_command(self, command: List[str], cwd: str) -> str:
         try:
             result = subprocess.run(
                 command,
-                cwd=self.repo_path,
+                cwd=cwd,
                 capture_output=True,
                 text=True,
                 check=True,
             )
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
-            log.error(f"Command failed: {' '.join(command)}")
-            log.error(f"Error: {e.stderr}")
             raise GitCommandError(
                 message="Command execution failed",
                 command=" ".join(command),
                 stderr=e.stderr,
             )
 
+
+class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
+    """Implementation of GitHub repository analyzer"""
+
+    def __init__(
+        self,
+        repo_path: str,
+        command_runner: CommandRunner = None,
+    ):
+        self.repo_path = repo_path
+        self.command_runner = command_runner or DefaultCommandRunner()
+        self.config = settings
+        self.weights = self.config.metrics.weights
+        self.normalizers = self.config.metrics.normalizers
+
     def get_repo_age(self) -> float:
         """Calculate repository age in days"""
-        first_commit_date = self._run_command(
+        first_commit_date = self.command_runner.run_command(
             [
                 "git",
                 "log",
@@ -100,6 +84,7 @@ class GitHubAnalyzer:
                 "--format=%ct",
                 "--max-parents=0",
             ],
+            self.repo_path,
         )
         creation_timestamp = float(first_commit_date)
         current_timestamp = time.time()
@@ -107,12 +92,13 @@ class GitHubAnalyzer:
 
     def get_update_frequency(self) -> float:
         """Calculate average days between updates"""
-        commit_dates = self._run_command(
+        commit_dates = self.command_runner.run_command(
             [
                 "git",
                 "log",
                 "--format=%ct",
             ],
+            self.repo_path,
         ).splitlines()
 
         if len(commit_dates) < 2:
@@ -124,7 +110,7 @@ class GitHubAnalyzer:
 
     def get_contributor_count(self) -> int:
         """Get number of unique contributors"""
-        contributors = self._run_command(
+        contributors = self.command_runner.run_command(
             [
                 "git",
                 "shortlog",
@@ -132,13 +118,17 @@ class GitHubAnalyzer:
                 "-n",
                 "--all",
             ],
+            self.repo_path,
         ).splitlines()
         return len(contributors)
 
     def get_stars(self) -> int:
         """Get repository star count using GitHub CLI"""
         try:
-            repo_info = self._run_command(["gh", "repo", "view", "--json", "stargazerCount"])
+            repo_info = self.command_runner.run_command(
+                ["gh", "repo", "view", "--json", "stargazerCount"],
+                self.repo_path,
+            )
             return json.loads(repo_info)["stargazerCount"]
         except subprocess.CalledProcessError as e:
             msg = f"Could not fetch star count: {str(e)}"
@@ -165,21 +155,28 @@ class GitHubAnalyzer:
 
     def get_commit_count(self) -> int:
         """Get total number of commits"""
-        return len(self._run_command(["git", "log", "--oneline"]).splitlines())
+        return len(self.command_runner.run_command(["git", "log", "--oneline"], self.repo_path).splitlines())
 
     def _normalize_metrics(self, metrics: dict) -> dict:
         """Normalize metrics to 0-1 scale"""
         return {
-            "age": min(metrics["age_days"] / self.MAX_AGE_DAYS, 1.0),
-            "update_frequency": 1.0 - min(metrics["update_frequency"] / self.MAX_UPDATE_FREQ, 1.0),
-            "contributors": min(metrics["contributor_count"] / self.MAX_CONTRIBUTORS, 1.0),
-            "stars": min(metrics["stars"] / self.MAX_STARS, 1.0),
-            "commits": min(metrics["commit_count"] / self.MAX_COMMITS, 1.0),
+            "age": min(metrics["age_days"] / self.normalizers["max_age_days"], 1.0),
+            "update_frequency": 1.0
+            - min(
+                metrics["update_frequency"] / self.normalizers["max_update_frequency_days"],
+                1.0,
+            ),
+            "contributors": min(
+                metrics["contributor_count"] / self.normalizers["max_contributors"],
+                1.0,
+            ),
+            "stars": min(metrics["stars"] / self.normalizers["max_stars"], 1.0),
+            "commits": min(metrics["commit_count"] / self.normalizers["max_commits"], 1.0),
         }
 
     def _calculate_score(self, normalized_metrics: dict) -> float:
         """Calculate weighted social signal score"""
-        return sum(self.WEIGHTS[key] * value for key, value in normalized_metrics.items()) * 100
+        return sum(self.weights[key] * value for key, value in normalized_metrics.items()) * 100
 
     def calculate_social_signal(self) -> RepoMetrics:
         """Perform complete repository analysis and calculate social signal score"""
@@ -210,11 +207,3 @@ class GitHubAnalyzer:
         except (GitCommandError, GitHubAPIError) as e:
             log.error(f"Error analyzing repository: {str(e)}")
             raise
-
-
-class RepositoryStorage(Protocol):
-    """Protocol defining repository storage interface"""
-
-    def get_by_path(self, path: str) -> Optional[RepoMetrics]: ...
-    def save_metrics(self, metrics: RepoMetrics) -> RepoMetrics: ...
-    def get_all(self, sort_by: str = "social_signal") -> List[RepoMetrics]: ...
