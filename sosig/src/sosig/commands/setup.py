@@ -1,13 +1,10 @@
-import json
-
 import typer
-from rich.console import Console
 
 from ..core.config import settings, get_data_dir, get_config_dir
 from ..utils.setup_utils import ConfigManager
+from ..utils.display_service import display
 
 setup_cmds = typer.Typer()
-console = Console()
 
 
 @setup_cmds.callback()
@@ -20,14 +17,13 @@ def callback():
 def show():
     """Show current configuration"""
     config_manager = ConfigManager()
-    console.print_json(json.dumps(config_manager.get_config().model_dump(), indent=2))
-    config_dir = get_config_dir()
-    data_dir = get_data_dir()
-    console.print("[bold]Application Paths:[/bold]")
-    console.print(f"Config directory: {config_dir}")
-    console.print(f"Data directory: {data_dir}")
-    console.print(f"Database file: {data_dir / settings.database.filename}")
-    console.print(f"Config file: {config_dir / 'config.json'}")
+    paths = {
+        "Config directory": get_config_dir(),
+        "Data directory": get_data_dir(),
+        "Database file": get_data_dir() / settings.database.filename,
+        "Config file": get_config_dir() / "config.json",
+    }
+    display.show_config(config_manager.get_config().model_dump(), paths)
 
 
 @setup_cmds.command()
@@ -61,7 +57,7 @@ def set(
                 current[keys[-1]] = value
 
         config_manager.update_config(updates)
-        console.print(f"[green]Updated {key} to {value}[/green]")
+        display.success(f"Updated {key} to {value}")
 
     except Exception as e:
-        console.print(f"[red]Error updating config: {str(e)}[/red]")
+        display.error(f"Error updating config: {str(e)}")

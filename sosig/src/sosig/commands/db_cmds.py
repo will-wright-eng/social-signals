@@ -1,0 +1,67 @@
+import typer
+
+from ..core.db import get_db
+from ..utils.display_service import display
+
+db_cmds = typer.Typer()
+
+
+@db_cmds.command()
+def clear():
+    """Clear all data from the database."""
+    try:
+        db = get_db()
+        count = db.clear_all()
+
+        if not typer.confirm(f"Are you sure you want to delete {count} repositories?"):
+            raise typer.Abort()
+
+        db.clear_all()
+        display.success("Successfully cleared all repository data")
+    except Exception as e:
+        display.error(f"Error clearing database: {e}")
+        raise typer.Exit(1)
+
+
+@db_cmds.command()
+def stats():
+    """Show database statistics."""
+    try:
+        db = get_db()
+        stats = db.get_stats()
+        display.show_db_stats(stats)
+    except Exception as e:
+        display.error(f"Error getting database statistics: {e}")
+        raise typer.Exit(1)
+
+
+@db_cmds.command()
+def remove(
+    repo_name: str = typer.Argument(..., help="Name of the repository to remove"),
+):
+    """Remove a specific repository from the database."""
+    try:
+        db = get_db()
+
+        if not typer.confirm(f"Are you sure you want to delete repository '{repo_name}'?"):
+            raise typer.Abort()
+
+        if db.remove_repository(repo_name):
+            display.success(f"Successfully removed repository '{repo_name}'")
+        else:
+            display.warn(f"Repository '{repo_name}' not found in database")
+    except Exception as e:
+        display.error(f"Error removing repository: {e}")
+        raise typer.Exit(1)
+
+
+@db_cmds.command()
+def vacuum():
+    """Optimize the database by running VACUUM."""
+    try:
+        db = get_db()
+        db.optimize()
+        display.success("Successfully optimized database")
+    except Exception as e:
+        display.error(f"Error optimizing database: {e}")
+        raise typer.Exit(1)

@@ -1,8 +1,7 @@
 import time
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
-
+from ..core.db import get_db
 from ..core.models import Repository
 from ..utils.gh_utils import RepoMetrics
 
@@ -10,30 +9,37 @@ from ..utils.gh_utils import RepoMetrics
 class RepositoryDAO:
     """Data Access Object for Repository operations"""
 
-    def __init__(self, session: Session):
-        self.session = session
+    def __init__(self):
+        self.db = get_db()
 
     def get_by_path(self, path: str) -> Optional[Repository]:
-        return self.session.query(Repository).filter_by(path=path).first()
+        """Get repository by path."""
+        with self.db.get_session() as session:
+            return session.query(Repository).filter_by(path=path).first()
 
     def get_all(self, sort_by: str = "social_signal") -> List[Repository]:
-        query = self.session.query(Repository)
-        if hasattr(Repository, sort_by):
-            query = query.order_by(getattr(Repository, sort_by).desc())
-        return query.all()
+        """Get all repositories with optional sorting."""
+        with self.db.get_session() as session:
+            query = session.query(Repository)
+            if hasattr(Repository, sort_by):
+                query = query.order_by(getattr(Repository, sort_by).desc())
+            return query.all()
 
     def save_metrics(self, repo_path: str, metrics: RepoMetrics) -> Repository:
-        existing = self.get_by_path(repo_path)
+        """Save or update repository metrics."""
+        with self.db.get_session() as session:
+            existing = session.query(Repository).filter_by(path=repo_path).first()
 
-        if existing:
-            self._update_repository(existing, metrics)
-        else:
-            existing = self._create_repository(repo_path, metrics)
+            if existing:
+                self._update_repository(existing, metrics)
+            else:
+                existing = self._create_repository(repo_path, metrics)
+                session.add(existing)
 
-        self.session.commit()
-        return existing
+            return existing
 
     def _update_repository(self, repo: Repository, metrics: RepoMetrics) -> None:
+        """Update repository with new metrics."""
         repo.age_days = metrics.age_days
         repo.update_frequency_days = metrics.update_frequency_days
         repo.contributor_count = metrics.contributor_count
@@ -43,7 +49,8 @@ class RepositoryDAO:
         repo.last_analyzed = time.time()
 
     def _create_repository(self, repo_path: str, metrics: RepoMetrics) -> Repository:
-        repo = Repository(
+        """Create new repository from metrics."""
+        return Repository(
             name=metrics.name,
             path=repo_path,
             age_days=metrics.age_days,
@@ -54,5 +61,3 @@ class RepositoryDAO:
             social_signal=metrics.social_signal,
             last_analyzed=time.time(),
         )
-        self.session.add(repo)
-        return repo
