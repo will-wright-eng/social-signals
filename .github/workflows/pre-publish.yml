@@ -29,13 +29,14 @@ jobs:
         RYE_INSTALL_OPTION: --yes
       run: |
         curl -sSf https://rye.astral.sh/get | bash
-        "$HOME/.rye/shims/rye" setup
+        source "$HOME/.rye/env"
+        rye setup
         echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
     - name: Build package
       working-directory: sosig
       run: |
-        eval "$($HOME/.rye/shims/rye shell-setup)"
+        source "$HOME/.rye/env"
         rye sync
         rye build
 
