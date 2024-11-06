@@ -20,18 +20,22 @@ jobs:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
     runs-on: ubuntu-latest
     steps:
-    steps:
     - uses: actions/checkout@master
 
-    - name: Install Rye
-      run: curl -sSf https://rye-up.com/get | bash
-
-    - name: Add Rye to PATH
-      run: echo "$HOME/.rye/shims" >> $GITHUB_PATH
+    - name: Install and Setup Rye
+      env:
+        RYE_VERSION: 0.42.0
+        RYE_INSTALL_OPTION: --yes
+      run: |
+        curl -sSf https://rye.astral.sh/get | bash
+        echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        source "$HOME/.rye/env"
+        rye --version  # Verify installation
 
     - name: Build package
       working-directory: sosig
       run: |
+        source "$HOME/.rye/env"
         rye sync
         rye build
 
