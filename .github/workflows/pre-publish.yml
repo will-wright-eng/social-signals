@@ -24,7 +24,7 @@ jobs:
     - uses: actions/checkout@master
 
     - name: Install Rye
-      run: curl -sSf https://rye-up.com/get | bash
+      run: curl -sSf https://rye.astral.sh/get | bash
 
     - name: Add Rye to PATH
       run: echo "$HOME/.rye/shims" >> $GITHUB_PATH
