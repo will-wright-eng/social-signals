@@ -1,6 +1,7 @@
 import typer
 
 from ..core.config import settings, get_data_dir, get_config_dir
+from ..core.logger import log
 from ..utils.setup_utils import ConfigManager
 from ..utils.display_service import display
 
@@ -8,8 +9,12 @@ setup_cmds = typer.Typer()
 
 
 @setup_cmds.command()
-def show():
+def show(
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
     """Show current configuration"""
+    if debug:
+        log.set_debug(debug)
     config_manager = ConfigManager()
     paths = {
         "Config directory": get_config_dir(),
@@ -24,8 +29,11 @@ def show():
 def set(
     key: str = typer.Argument(..., help="Configuration key (dot notation, e.g., 'metrics.weights.age')"),
     value: str = typer.Argument(..., help="Value to set"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
     """Set a configuration value"""
+    if debug:
+        log.set_debug(debug)
     config_manager = ConfigManager()
 
     keys = key.split(".")

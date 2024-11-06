@@ -39,9 +39,12 @@ def _cleanup_path(path: Path) -> None:
 @gh_cmds.command()
 def list(
     sort_by: str = typer.Option("social_signal", "--sort", "-s", help="Sort by: social_signal, stars, age_days"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
     """List all analyzed repositories in the database."""
-    valid_sort_fields = ["social_signal", "stars", "age_days", "last_analyzed", "commit_count"]
+    if debug:
+        log.set_debug(debug)
+    valid_sort_fields = ["social_signal", "name", "username", "stars", "age_days", "last_analyzed", "commit_count"]
     if sort_by not in valid_sort_fields:
         display.error(f"Invalid sort field '{sort_by}'. Valid options are: {', '.join(valid_sort_fields)}")
         raise typer.Exit(1)
@@ -67,8 +70,11 @@ def analyze(
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Force reanalysis of repositories"),
     cleanup: bool = typer.Option(True, "--cleanup/--no-cleanup", help="Clean up repositories after analysis"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
     """Analyze one or more GitHub repositories and store results."""
+    if debug:
+        log.set_debug(debug)
     workspace.mkdir(parents=True, exist_ok=True)
 
     try:

@@ -11,12 +11,22 @@ from .config import settings
 class Database:
     """Database manager class handling all database operations"""
 
+    _instance = None
+
+    def __new__(cls, db_path: Optional[str] = None):
+        """Implement proper singleton pattern"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, db_path: Optional[str] = None):
         """Initialize database connection and session maker
 
-        Args:
-            db_path: Optional database URI. If not provided, uses the configured URI from settings.
+        This will only run once due to singleton pattern
         """
+        if hasattr(self, "engine"):  # Skip if already initialized
+            return
+
         self.engine = create_engine(
             db_path if db_path else settings.database.URI,
             pool_pre_ping=True,
@@ -27,7 +37,12 @@ class Database:
             autocommit=False,
             autoflush=False,
         )
+        self._initialize_database()
+
+    def _initialize_database(self) -> None:
+        """Initialize database schema and validate models"""
         models.Base.metadata.create_all(self.engine)
+        models.Repository.validate_fields()  # Validate field consistency
 
     @contextmanager
     def get_session(self) -> Session:
@@ -158,18 +173,4 @@ _db: Optional[Database] = None
 
 def get_db(db_path: Optional[str] = None) -> Database:
     """Get or create database instance singleton."""
-    global _db
-    if _db is None:
-        _db = Database(db_path)
-    return _db
-
-
-def init_db(db_path: Optional[str] = None) -> sessionmaker:
-    """Initialize database and create tables (legacy support).
-
-    Args:
-        db_path: Optional database URI. If not provided, uses the configured URI from settings.
-    """
-    db = get_db(db_path)
-    models.Repository.validate_fields()  # Validate field consistency
-    return db.SessionLocal
+    return Database(db_path)

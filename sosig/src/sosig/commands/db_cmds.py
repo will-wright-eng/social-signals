@@ -1,14 +1,19 @@
 import typer
 
 from ..core.db import get_db
+from ..core.logger import log
 from ..utils.display_service import display
 
 db_cmds = typer.Typer()
 
 
 @db_cmds.command()
-def clear():
+def clear(
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
     """Clear all data from the database."""
+    if debug:
+        log.set_debug(debug)
     try:
         db = get_db()
         count = db.clear_all()
@@ -24,8 +29,12 @@ def clear():
 
 
 @db_cmds.command()
-def stats():
+def stats(
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
     """Show database statistics."""
+    if debug:
+        log.set_debug(debug)
     try:
         db = get_db()
         stats = db.get_stats()
@@ -38,8 +47,11 @@ def stats():
 @db_cmds.command()
 def remove(
     repo_name: str = typer.Argument(..., help="Name of the repository to remove"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
     """Remove a specific repository from the database."""
+    if debug:
+        log.set_debug(debug)
     try:
         db = get_db()
 
@@ -56,8 +68,12 @@ def remove(
 
 
 @db_cmds.command()
-def vacuum():
+def vacuum(
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
     """Optimize the database by running VACUUM."""
+    if debug:
+        log.set_debug(debug)
     try:
         db = get_db()
         db.optimize()
@@ -68,8 +84,12 @@ def vacuum():
 
 
 @db_cmds.command()
-def schema():
+def schema(
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
     """Show database schema information."""
+    if debug:
+        log.set_debug(debug)
     try:
         db = get_db()
         schema_info = db.get_schema_info()
