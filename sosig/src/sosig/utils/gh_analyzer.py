@@ -13,6 +13,7 @@ class RepositoryAnalyzer:
 
     def analyze_repository(self, repo_path: str, force_update: bool = False) -> models.Repository:
         """Analyze a repository and store results in database"""
+        # Get fresh instance from database
         existing_repo = self.repository_dao.get_by_path(repo_path)
 
         if existing_repo and not force_update:
@@ -23,9 +24,10 @@ class RepositoryAnalyzer:
         analyzer = GitHubAnalyzerImpl(repo_path)
         metrics = analyzer.calculate_social_signal()
 
-        return self.repository_dao.save_metrics(repo_path, metrics)
+        return self.repository_dao.save_metrics(metrics)
 
     def _is_analysis_fresh(self, repo: models.Repository) -> bool:
         """Check if repository analysis is fresh enough"""
         cache_ttl = settings.database.CACHE_TTL_HOURS * 3600
-        return (time.time() - repo.last_analyzed) < cache_ttl
+        last_analyzed = getattr(repo, "last_analyzed", None) or 0
+        return (time.time() - last_analyzed) < cache_ttl

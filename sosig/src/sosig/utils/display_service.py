@@ -29,6 +29,7 @@ class DisplayService:
 
         table = Table(title="Repository Analysis Results")
         table.add_column("Repository")
+        table.add_column("Username")
         table.add_column("Age (days)")
         table.add_column("Update Freq")
         table.add_column("Contributors")
@@ -39,6 +40,7 @@ class DisplayService:
         for repo in results:
             table.add_row(
                 repo.name,
+                repo.username,
                 f"{repo.age_days:.1f}",
                 f"{repo.update_frequency_days:.1f}",
                 str(repo.contributor_count),
@@ -57,6 +59,7 @@ class DisplayService:
 
         table = Table(title="Analyzed Repositories")
         table.add_column("Repository")
+        table.add_column("Username")
         table.add_column("Last Analyzed")
         table.add_column("Social Signal")
         table.add_column("Stars")
@@ -67,6 +70,7 @@ class DisplayService:
             analyzed_time = time.strftime("%Y-%m-%d %H:%M", time.localtime(metrics.last_analyzed))
             table.add_row(
                 metrics.name,
+                metrics.username,
                 analyzed_time,
                 f"{metrics.social_signal:.1f}",
                 str(metrics.stars),
@@ -110,6 +114,10 @@ class DisplayService:
         table.add_row("Average Stars", f"{stats['avg_stars']:.1f}")
 
         self.console.print(table)
+
+    def info(self, message: str) -> None:
+        """Display an info message"""
+        self.console.print(message)
 
 
 display = DisplayService()

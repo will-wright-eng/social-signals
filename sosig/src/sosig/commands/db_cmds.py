@@ -65,3 +65,36 @@ def vacuum():
     except Exception as e:
         display.error(f"Error optimizing database: {e}")
         raise typer.Exit(1)
+
+
+@db_cmds.command()
+def schema():
+    """Show database schema information."""
+    try:
+        db = get_db()
+        schema_info = db.get_schema_info()
+
+        # Display tables
+        display.info("\nTables:")
+        for table_name, table_info in schema_info["tables"].items():
+            display.info(f"\n  {table_name}:")
+            for column in table_info["columns"]:
+                pk_marker = " (PK)" if column["primary_key"] else ""
+                nullable = "" if column["nullable"] else " NOT NULL"
+                display.info(f"    - {column['name']}: {column['type']}{nullable}{pk_marker}")
+
+        # Display indexes
+        if schema_info["indexes"]:
+            display.info("\nIndexes:")
+            for idx in schema_info["indexes"]:
+                display.info(f"  - {idx['name']} (on {idx['table']})")
+
+        # Display triggers
+        if schema_info["triggers"]:
+            display.info("\nTriggers:")
+            for trigger in schema_info["triggers"]:
+                display.info(f"  - {trigger['name']} (on {trigger['table']})")
+
+    except Exception as e:
+        display.error(f"Error getting schema information: {e}")
+        raise typer.Exit(1)

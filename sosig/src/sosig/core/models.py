@@ -1,5 +1,3 @@
-import time
-
 from sqlalchemy import Float, Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -11,16 +9,18 @@ Base = declarative_base()
 class Repository(Base):
     __tablename__ = "repositories"
 
-    id: int = Column(Integer, primary_key=True)
-    name: str = Column(String, unique=True, nullable=False)
-    path: str = Column(String, nullable=False)
-    age_days: float = Column(Float)
-    update_frequency_days: float = Column(Float)
-    contributor_count: int = Column(Integer)
-    stars: int = Column(Integer)
-    commit_count: int = Column(Integer)
-    social_signal: float = Column(Float)
-    last_analyzed: float = Column(Float, default=time.time)
+    # Define SQLAlchemy columns explicitly
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    path = Column(String, nullable=False)
+    username = Column(String, nullable=True)
+    age_days = Column(Float, nullable=True)
+    update_frequency_days = Column(Float, nullable=True)
+    contributor_count = Column(Integer, nullable=True)
+    stars = Column(Integer, nullable=True)
+    commit_count = Column(Integer, nullable=True)
+    social_signal = Column(Float, nullable=True)
+    last_analyzed = Column(Float, nullable=True)
 
     def __repr__(self) -> str:
         return f"Repository(name={self.name}, social_signal={self.social_signal})"
@@ -28,28 +28,28 @@ class Repository(Base):
     def to_metrics(self) -> RepoMetrics:
         """Convert database model to RepoMetrics data class"""
         return RepoMetrics(
-            name=self.name,
-            path=self.path,
-            age_days=self.age_days,
-            update_frequency_days=self.update_frequency_days,
-            contributor_count=self.contributor_count,
-            stars=self.stars,
-            commit_count=self.commit_count,
-            social_signal=self.social_signal,
-            last_analyzed=self.last_analyzed,
+            id=self.id,
+            **{field: getattr(self, field) for field in RepoMetrics.get_metric_fields()},
         )
 
     @classmethod
     def from_metrics(cls, metrics: RepoMetrics) -> "Repository":
         """Create database model from RepoMetrics data class"""
         return cls(
-            name=metrics.name,
-            path=metrics.path,
-            age_days=metrics.age_days,
-            update_frequency_days=metrics.update_frequency_days,
-            contributor_count=metrics.contributor_count,
-            stars=metrics.stars,
-            commit_count=metrics.commit_count,
-            social_signal=metrics.social_signal,
-            last_analyzed=metrics.last_analyzed,
+            **{field: getattr(metrics, field) for field in RepoMetrics.get_metric_fields()},
         )
+
+    @classmethod
+    def validate_fields(cls):
+        """Validate that Repository model matches RepoMetrics fields"""
+        repo_fields = set(cls.__table__.columns.keys()) - {"id"}
+        metrics_fields = set(RepoMetrics.get_metric_fields())
+
+        if repo_fields != metrics_fields:
+            missing = metrics_fields - repo_fields
+            extra = repo_fields - metrics_fields
+            raise ValueError(
+                f"Repository model fields don't match RepoMetrics:\n"
+                f"Missing fields: {missing}\n"
+                f"Extra fields: {extra}",
+            )

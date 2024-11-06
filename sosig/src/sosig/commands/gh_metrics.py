@@ -1,10 +1,11 @@
 import shutil
+import traceback
 from typing import List
 from pathlib import Path
 
 import typer
-from rich.progress import Progress, TextColumn, SpinnerColumn
 
+from ..core.logger import log
 from ..core.interfaces import RepoMetrics
 from ..utils.gh_analyzer import RepositoryAnalyzer
 from ..utils.gh_repo_dao import RepositoryDAO
@@ -46,11 +47,14 @@ def list(
         raise typer.Exit(1)
 
     try:
+        log.debug("Listing repositories")
         service = _init_services()
+        log.debug("Getting all repositories")
         repos = service.get_all_repositories(sort_by=sort_by)
+        log.debug("Displaying repositories")
         display.show_repository_list(repos)
     except Exception as e:
-        display.error(f"Error listing repositories: {e}")
+        display.error(f"Error listing repositories: {e}\n{traceback.format_exc()}")
         raise typer.Exit(1)
 
 
@@ -72,45 +76,8 @@ def analyze(
         with display.status("Analyzing repositories..."):
             results = service.analyze_repositories(repo_paths, workspace, force)
             _display_analysis_results(results)
-    finally:
-        if cleanup:
-            _cleanup_path(workspace)
-
-
-@gh_cmds.command()
-def analyze_from_file(
-    urls_file: Path = typer.Argument(..., help="Path to file containing repository URLs"),
-    workspace: Path = typer.Option(
-        Path.home() / ".local" / "share" / "ssig" / "workspace",
-        help="Directory for cloning repositories",
-    ),
-    force: bool = typer.Option(False, "--force", "-f", help="Force reanalysis of repositories"),
-    cleanup: bool = typer.Option(True, "--cleanup/--no-cleanup", help="Clean up cloned repositories after analysis"),
-):
-    """Analyze repositories from a file containing GitHub URLs."""
-    if not urls_file.exists():
-        display.error(f"Error: File not found: {urls_file}")
-        raise typer.Exit(1)
-
-    workspace.mkdir(parents=True, exist_ok=True)
-
-    try:
-        urls = [url.strip() for url in urls_file.read_text().splitlines() if url.strip()]
-        if not urls:
-            display.warn("No URLs found in file")
-            raise typer.Exit(0)
-
-        service = _init_services()
-
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            display.console,
-        ) as progress:
-            progress.add_task("Processing repositories...", total=len(urls))
-            results = service.analyze_repositories(urls, workspace, force)
-            _display_analysis_results(results)
-
+    except Exception as e:
+        display.error(f"Error analyzing repositories: {e}\n{traceback.format_exc()}")
     finally:
         if cleanup:
             _cleanup_path(workspace)

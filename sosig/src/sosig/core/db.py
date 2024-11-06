@@ -17,8 +17,16 @@ class Database:
         Args:
             db_path: Optional database URI. If not provided, uses the configured URI from settings.
         """
-        self.engine = create_engine(db_path if db_path else settings.database.URI)
-        self.SessionLocal = sessionmaker(bind=self.engine)
+        self.engine = create_engine(
+            db_path if db_path else settings.database.URI,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+        )
+        self.SessionLocal = sessionmaker(
+            bind=self.engine,
+            autocommit=False,
+            autoflush=False,
+        )
         models.Base.metadata.create_all(self.engine)
 
     @contextmanager
@@ -82,7 +90,16 @@ class Database:
     def get_repository(self, path: str) -> Optional[models.Repository]:
         """Get repository by path."""
         with self.get_session() as session:
-            return session.query(models.Repository).filter_by(path=path).first()
+            repo = session.query(models.Repository).filter_by(path=path).first()
+            if repo:
+                # Load all relationships and attributes
+                session.refresh(repo)
+                # Create a detached copy with all attributes loaded
+                detached_copy = models.Repository(
+                    **{k: v for k, v in repo.__dict__.items() if not k.startswith("_")},
+                )
+                return detached_copy
+            return None
 
     def get_all_repositories(self, sort_by: str = "social_signal") -> List[models.Repository]:
         """Get all repositories with optional sorting."""
@@ -90,7 +107,49 @@ class Database:
             query = session.query(models.Repository)
             if hasattr(models.Repository, sort_by):
                 query = query.order_by(getattr(models.Repository, sort_by).desc())
-            return query.all()
+
+            # Load all results and create detached copies
+            results = []
+            for repo in query.all():
+                session.refresh(repo)  # Ensure all attributes are loaded
+                detached_copy = models.Repository(
+                    **{k: v for k, v in repo.__dict__.items() if not k.startswith("_")},
+                )
+                results.append(detached_copy)
+
+            return results
+
+    def get_schema_info(self) -> dict:
+        """Get database schema information.
+
+        Returns:
+            Dictionary containing tables, indexes, and triggers
+        """
+        with self.get_session() as session:
+            # Get tables and their columns
+            tables = {}
+            for table in models.Base.metadata.tables.values():
+                tables[table.name] = {
+                    "columns": [
+                        {
+                            "name": col.name,
+                            "type": str(col.type),
+                            "nullable": col.nullable,
+                            "primary_key": col.primary_key,
+                        }
+                        for col in table.columns
+                    ],
+                }
+
+            # Get indexes and triggers using raw SQL (SQLite specific)
+            indexes = session.execute(text("SELECT name, tbl_name FROM sqlite_master WHERE type='index'")).fetchall()
+            triggers = session.execute(text("SELECT name, tbl_name FROM sqlite_master WHERE type='trigger'")).fetchall()
+
+            return {
+                "tables": tables,
+                "indexes": [{"name": idx[0], "table": idx[1]} for idx in indexes],
+                "triggers": [{"name": trig[0], "table": trig[1]} for trig in triggers],
+            }
 
 
 # Global database instance
@@ -112,4 +171,5 @@ def init_db(db_path: Optional[str] = None) -> sessionmaker:
         db_path: Optional database URI. If not provided, uses the configured URI from settings.
     """
     db = get_db(db_path)
+    models.Repository.validate_fields()  # Validate field consistency
     return db.SessionLocal

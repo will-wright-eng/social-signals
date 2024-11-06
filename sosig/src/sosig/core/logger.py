@@ -28,4 +28,4 @@ def get_logger(name: str, debug: bool = None):
     return logger
 
 
-log = get_logger(__name__)
+log = get_logger(__name__, debug=settings.logging.DEBUG)

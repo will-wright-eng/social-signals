@@ -51,7 +51,7 @@ class DatabaseConfig(BaseModel):
 
 
 class LoggingConfig(BaseModel):
-    DEBUG: bool = Field(default=False)
+    DEBUG: bool = Field(default=True)
     LOG_FORMAT: str = Field(
         default="%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
     )

@@ -7,12 +7,6 @@ from ..utils.display_service import display
 setup_cmds = typer.Typer()
 
 
-@setup_cmds.callback()
-def callback():
-    """Setup and configuration commands."""
-    pass
-
-
 @setup_cmds.command()
 def show():
     """Show current configuration"""

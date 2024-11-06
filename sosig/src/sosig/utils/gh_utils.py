@@ -157,6 +157,22 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
         """Get total number of commits"""
         return len(self.command_runner.run_command(["git", "log", "--oneline"], self.repo_path).splitlines())
 
+    def get_repo_username(self) -> str:
+        """Get repository owner username using GitHub CLI"""
+        try:
+            repo_info = self.command_runner.run_command(
+                ["gh", "repo", "view", "--json", "owner"],
+                self.repo_path,
+            )
+            return json.loads(repo_info)["owner"]["login"]
+        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
+            msg = f"Could not fetch repository username: {str(e)}"
+            log.warning(msg)
+            raise GitHubAPIError(
+                message=msg,
+                endpoint="repo view",
+            )
+
     def _normalize_metrics(self, metrics: dict) -> dict:
         """Normalize metrics to 0-1 scale"""
         return {
@@ -195,6 +211,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
             return RepoMetrics(
                 name=self.repo_path.split("/")[-1],
                 path=self.repo_path,
+                username=self.get_repo_username(),
                 age_days=raw_metrics["age_days"],
                 update_frequency_days=raw_metrics["update_frequency"],
                 contributor_count=raw_metrics["contributor_count"],

@@ -1,6 +1,6 @@
 import time
 from typing import List, Optional, Protocol
-from dataclasses import dataclass
+from dataclasses import fields, dataclass
 
 
 @dataclass
@@ -9,13 +9,20 @@ class RepoMetrics:
 
     name: str
     path: str
+    username: str
     age_days: float
     update_frequency_days: float
     contributor_count: int
     stars: int
     commit_count: int
     social_signal: float
-    last_analyzed: float = time.time()
+    id: Optional[int] = None  # Moved to end since it has a default value
+    last_analyzed: float = time.time()  # Also has default value, stays at end
+
+    @classmethod
+    def get_metric_fields(cls) -> List[str]:
+        """Get list of metric field names"""
+        return [f.name for f in fields(cls) if f.name != "id"]
 
 
 class RepositoryStorage(Protocol):
