@@ -23,20 +23,22 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - name: Install Rye
+    - name: Install and Setup Rye
       env:
         RYE_VERSION: 0.42.0
         RYE_INSTALL_OPTION: --yes
       run: |
         curl -sSf https://rye.astral.sh/get | bash
-        source "$HOME/.rye/env"
+        export PATH="$HOME/.rye/shims:$PATH"
+        . "$HOME/.rye/env"
         rye setup
         echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
     - name: Build package
       working-directory: sosig
       run: |
-        source "$HOME/.rye/env"
+        export PATH="$HOME/.rye/shims:$PATH"
+        . "$HOME/.rye/env"
         rye sync
         rye build
 
