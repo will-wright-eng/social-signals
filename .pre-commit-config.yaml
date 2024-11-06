@@ -11,6 +11,7 @@ repos:
   rev: v5.0.0
   hooks:
   - id: check-yaml
+    exclude: ^\.github/
   - id: end-of-file-fixer
   - id: trailing-whitespace
   - id: check-toml
@@ -28,6 +29,7 @@ repos:
     - --autofix
     - --preserve-quotes
     - --indent=2
+    exclude: ^\.github/
 - repo: https://github.com/igorshubovych/markdownlint-cli
   rev: v0.42.0
   hooks:

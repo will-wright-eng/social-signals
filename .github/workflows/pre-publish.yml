@@ -22,26 +22,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-    - name: Install pypa/build
-      run: >-
-        python -m
-        pip install
-        build
-        --user
-    - name: Build a binary wheel and a source tarball
-      run: >-
-        python -m
-        build
-        --sdist
-        --wheel
-        --outdir dist/
-        .
+
+    - name: Install Rye
+      run: curl -sSf https://rye-up.com/get | bash
+
+    - name: Add Rye to PATH
+      run: echo "$HOME/.rye/shims" >> $GITHUB_PATH
+
+    - name: Build package
+      working-directory: sosig
+      run: |
+        rye sync
+        rye build
+
     - name: Publish distribution 📦 to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
+        packages_dir: sosig/dist/
