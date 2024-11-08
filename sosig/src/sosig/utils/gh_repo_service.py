@@ -49,8 +49,8 @@ class RepositoryService:
         if not target_path.exists() or force:
             self._prepare_repository(source_path, target_path)
 
-        repo = self.analyzer.analyze_repository(str(target_path), force_update=force)
-        return repo.to_metrics()
+        metrics = self.analyzer.analyze_repository(str(target_path), force_update=force)
+        return metrics
 
     def _prepare_repository(self, source: str, target: Path) -> None:
         """Prepare repository for analysis by copying or cloning"""

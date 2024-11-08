@@ -12,20 +12,23 @@ class RepositoryAnalyzer:
         self.repository_dao = repository_dao
 
     def analyze_repository(self, repo_path: str, force_update: bool = False) -> models.Repository:
-        """Analyze a repository and store results in database"""
-        # Get fresh instance from database
-        existing_repo = self.repository_dao.get_by_path(repo_path)
+        """Analyze repository and return metrics"""
+        try:
+            # Get existing metrics from database if not forcing update
+            if not force_update:
+                existing = self.repository_dao.get_by_path(repo_path)
+                if existing:
+                    return existing
 
-        if existing_repo and not force_update:
-            if self._is_analysis_fresh(existing_repo):
-                log.info(f"Using cached analysis for {repo_path}")
-                return existing_repo
+            # Calculate new metrics
+            analyzer = GitHubAnalyzerImpl(repo_path)
+            metrics = analyzer.calculate_social_signal()
 
-        analyzer = GitHubAnalyzerImpl(repo_path)
-        metrics = analyzer.calculate_social_signal()
-
-        # Save and return a detached copy
-        return self.repository_dao.save_metrics(metrics)
+            # Save and return the metrics
+            return self.repository_dao.save_metrics(metrics)
+        except Exception as e:
+            log.error(f"Error analyzing repository {repo_path}: {str(e)}")
+            raise
 
     def _is_analysis_fresh(self, repo: models.Repository) -> bool:
         """Check if repository analysis is fresh enough"""

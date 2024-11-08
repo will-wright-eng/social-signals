@@ -203,23 +203,20 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 ["gh", "repo", "view", "--json", "issues"],
                 self.repo_path,
             )
+            log.debug(f"GitHub API Response: {repo_info}")
             data = json.loads(repo_info)
-            log.debug(f"Open issues: {data}")
-            if not isinstance(data, dict):
-                log.warning("Unexpected API response format: %s", str(data))
-                return 0
-            issues = data.get("issues", [])
-            if not isinstance(issues, list):
-                return len([issue for issue in issues if isinstance(issue, dict) and issue.get("state") == "OPEN"])
-            elif isinstance(issues, dict):
-                return issues.get("totalCount", 0)
-            else:
-                return 0
-        except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
-            log.warning("Could not fetch open issues: %s", str(e))
+
+            # Handle the new API response structure
+            if (
+                isinstance(data, dict)
+                and "issues" in data
+                and isinstance(data["issues"], dict)
+                and "totalCount" in data["issues"]
+            ):
+                return data["issues"]["totalCount"]
             return 0
-        except Exception as e:
-            log.warning("Unexpected error fetching open issues: %s", str(e))
+        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
+            log.warning(f"Could not fetch open issues: {str(e)}")
             return 0
 
     def _normalize_metrics(self, metrics: dict) -> dict:
