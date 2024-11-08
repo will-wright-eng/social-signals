@@ -20,6 +20,7 @@ class RepoMetrics:
     social_signal: float
     id: Optional[int] = None
     last_analyzed: float = time.time()
+    date_created: float = time.time()
 
     @classmethod
     def get_metric_fields(cls) -> List[str]:

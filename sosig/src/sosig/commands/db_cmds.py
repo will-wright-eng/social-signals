@@ -1,3 +1,5 @@
+import os
+
 import typer
 
 from ..core.db import get_db
@@ -123,4 +125,25 @@ def dump(
 
     except Exception as e:
         display.error(f"Error dumping database contents: {e}")
+        raise typer.Exit(1)
+
+
+@db_cmds.command()
+def export(
+    output_dir: str = typer.Option(".", "--output-dir", "-o", help="Directory to save the CSV file"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
+    """Export all repository data to a CSV file."""
+    if debug:
+        log.set_debug(debug)
+    try:
+        db = get_db()
+
+        # Ensure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+
+        filepath = db.export_to_csv(output_dir)
+        display.success(f"Successfully exported data to: {filepath}")
+    except Exception as e:
+        display.error(f"Error exporting database contents: {e}")
         raise typer.Exit(1)

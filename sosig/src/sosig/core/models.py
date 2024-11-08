@@ -1,3 +1,5 @@
+import time
+
 from sqlalchemy import Float, Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -23,6 +25,7 @@ class Repository(Base):
     last_analyzed = Column(Float, nullable=True)
     lines_of_code = Column(Integer, nullable=True)
     open_issues = Column(Integer, nullable=True)
+    date_created = Column(Float, nullable=False, default=time.time)
 
     def __repr__(self) -> str:
         return f"Repository(name={self.name}, social_signal={self.social_signal})"

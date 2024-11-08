@@ -1,3 +1,6 @@
+import os
+import csv
+import time
 from typing import List, Optional
 from contextlib import contextmanager
 
@@ -171,9 +174,36 @@ class Database:
                 "triggers": [{"name": trig[0], "table": trig[1]} for trig in triggers],
             }
 
+    def export_to_csv(self, output_dir: str = ".") -> str:
+        """Export all repository data to a CSV file.
 
-# Global database instance
-_db: Optional[Database] = None
+        Args:
+            output_dir: Directory where the CSV file will be saved
+
+        Returns:
+            Path to the created CSV file
+        """
+        with self.get_session() as session:
+            repositories = self.get_all_repositories()
+
+            if not repositories or len(repositories) == 0:
+                raise Exception("No data to export")
+
+            # Create filename with timestamp
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            filename = f"sosig_export_{timestamp}.csv"
+            filepath = os.path.join(output_dir, filename)
+
+            # Get field names from the first repository
+            fieldnames = [k for k, v in repositories[0].__dict__.items() if not k.startswith("_")]
+
+            with open(filepath, "w", newline="") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for repo in repositories:
+                    writer.writerow({k: v for k, v in repo.__dict__.items() if not k.startswith("_")})
+
+            return filepath
 
 
 def get_db(db_path: Optional[str] = None) -> Database:

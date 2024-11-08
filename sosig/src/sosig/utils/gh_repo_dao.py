@@ -1,6 +1,8 @@
+import time
 from typing import List, Optional
 
 from ..core.db import get_db
+from ..core.logger import log
 from ..core.models import Repository
 from ..core.interfaces import RepoMetrics
 
@@ -34,19 +36,25 @@ class RepositoryDAO:
                 for repo in query.all()
             ]
 
-    def save_metrics(self, metrics: RepoMetrics) -> Repository:
+    def save_metrics(self, metrics: RepoMetrics) -> RepoMetrics:
         """Save or update repository metrics."""
         with self.db.get_session() as session:
             existing = session.query(Repository).filter_by(path=metrics.path).first()
 
             if existing:
+                log.debug(f"Updating existing repository: {existing.path}")
                 # Update existing repository
                 for field in RepoMetrics.get_metric_fields():
-                    setattr(existing, field, getattr(metrics, field))
+                    # Don't update date_created for existing records
+                    if field != "date_created":
+                        setattr(existing, field, getattr(metrics, field))
                 repo = existing
             else:
                 # Create new repository
+                log.debug(f"Creating new repository: {metrics.path}")
                 repo = Repository.from_metrics(metrics)
+                # Set date_created for new records
+                repo.date_created = time.time()
                 session.add(repo)
 
             session.commit()
