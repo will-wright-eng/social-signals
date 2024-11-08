@@ -34,20 +34,9 @@ SOSIG provides three main command groups:
 # Analyze repositories
 sosig gh analyze path/to/repo1 path/to/repo2
 
-# List analyzed repositories (sorted by social signal by default)
+# List analyzed repositories
 sosig gh list
-sosig gh list --sort stars  # Sort by stars
 ```
-
-Available sort options:
-
-- `social_signal` (default)
-- `stars`
-- `age_days`
-- `name`
-- `username`
-- `last_analyzed`
-- `commit_count`
 
 ### Database Operations (`db`)
 
@@ -61,9 +50,6 @@ sosig db schema
 # Remove specific repository
 sosig db remove repo-name
 
-# Clear all data
-sosig db clear
-
 # Optimize database
 sosig db vacuum
 ```
@@ -73,9 +59,6 @@ sosig db vacuum
 ```bash
 # Show current configuration
 sosig config show
-
-# Update configuration values
-sosig config set metrics.weights.age 0.3
 ```
 
 ## Project Structure
