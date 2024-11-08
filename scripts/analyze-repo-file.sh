@@ -30,14 +30,9 @@ if [ ! -f "$input_file" ]; then
     exit 1
 fi
 
-# Create a log file in the same directory as the input file
-log_dir=$(dirname "$input_file")
-timestamp=$(date +"%Y%m%d_%H%M%S")
-log_file="$log_dir/analysis_log_$timestamp.txt"
-
-echo "Starting analysis at $(date)" | tee "$log_file"
-echo "Reading repos from: $input_file" | tee -a "$log_file"
-echo "----------------------------------------" | tee -a "$log_file"
+echo "Starting analysis at $(date)"
+echo "Reading repos from: $input_file"
+echo "----------------------------------------"
 
 # Read each line from the input file
 while IFS= read -r url || [ -n "$url" ]; do
@@ -46,24 +41,28 @@ while IFS= read -r url || [ -n "$url" ]; do
         continue
     fi
 
-    echo "Analyzing: $url" | tee -a "$log_file"
+    echo "Analyzing: $url"
 
-    # Run the analysis command and capture both stdout and stderr
-    if output=$(sosig gh analyze "$url" 2>&1); then
-        echo "Success: $url" | tee -a "$log_file"
-        echo "$output" >> "$log_file"
+    # Run the analysis command and always display the output
+    output=$(sosig gh analyze "$url" 2>&1)
+    exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+        echo "Success: $url"
     else
-        echo "Error analyzing $url: $output" | tee -a "$log_file"
+        echo "Error analyzing $url"
     fi
 
-    echo "----------------------------------------" | tee -a "$log_file"
+    # Always show the output regardless of success/failure
+    echo "$output"
+
+    echo "----------------------------------------"
 
     # Add a small delay between requests to avoid rate limiting
     sleep 2
 done < "$input_file"
 
-echo "Analysis complete at $(date)" | tee -a "$log_file"
-echo "Log file saved to: $log_file"
+echo "Analysis complete at $(date)"
 
 # Deactivate virtual environment
 deactivate

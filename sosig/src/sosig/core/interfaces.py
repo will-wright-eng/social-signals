@@ -15,9 +15,11 @@ class RepoMetrics:
     contributor_count: int
     stars: int
     commit_count: int
+    lines_of_code: int
+    open_issues: int
     social_signal: float
-    id: Optional[int] = None  # Moved to end since it has a default value
-    last_analyzed: float = time.time()  # Also has default value, stays at end
+    id: Optional[int] = None
+    last_analyzed: float = time.time()
 
     @classmethod
     def get_metric_fields(cls) -> List[str]:
@@ -41,6 +43,8 @@ class GitHubAnalyzer(Protocol):
     def get_contributor_count(self) -> int: ...
     def get_stars(self) -> int: ...
     def get_commit_count(self) -> int: ...
+    def get_lines_of_code(self) -> int: ...
+    def get_open_issues(self) -> int: ...
     def calculate_social_signal(self) -> RepoMetrics: ...
 
 
