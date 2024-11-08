@@ -21,6 +21,8 @@ class Repository(Base):
     commit_count = Column(Integer, nullable=True)
     social_signal = Column(Float, nullable=True)
     last_analyzed = Column(Float, nullable=True)
+    lines_of_code = Column(Integer, nullable=True)
+    open_issues = Column(Integer, nullable=True)
 
     def __repr__(self) -> str:
         return f"Repository(name={self.name}, social_signal={self.social_signal})"

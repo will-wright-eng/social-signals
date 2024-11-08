@@ -1,15 +1,4 @@
-# social-signals
-
-## setup
-
-```bash
-rye add pip
-rye sync
-rye build
-python -m pip install -e .
-```
-
-# SOSIG (Social Signal)
+# SOSIG (Social Signal) Command Line Tool
 
 A command-line tool for analyzing GitHub repositories and calculating social signals based on various metrics.
 
@@ -110,6 +99,15 @@ The project includes several utility scripts:
 - `fetch-repos.sh`: Fetch repository information from GitHub
 
 ## Development
+
+### Setup
+
+```bash
+rye add pip
+rye sync
+rye build
+python -m pip install -e .
+```
 
 ### Debug Mode
 

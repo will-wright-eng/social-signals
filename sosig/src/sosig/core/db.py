@@ -81,21 +81,26 @@ class Database:
                 "avg_stars": session.query(func.avg(models.Repository.stars)).scalar() or 0,
             }
 
-    def remove_repository(self, repo_name: str) -> bool:
-        """Remove a specific repository.
+    def remove_db(self, drop_db: bool = False) -> bool:
+        """Remove a specific repository or drop the entire database.
 
         Args:
-            repo_name: Name of repository to remove
+            drop_db: If True, drops the entire database file
 
         Returns:
-            True if repository was found and removed, False otherwise
+            True if operation was successful, False otherwise
         """
-        with self.get_session() as session:
-            repo = session.query(models.Repository).filter_by(name=repo_name).first()
-            if repo:
-                session.delete(repo)
+        if drop_db:
+            try:
+                import os
+
+                db_path = self.engine.url.database
+                self.engine.dispose()  # Close all connections
+                if os.path.exists(db_path):
+                    os.remove(db_path)
                 return True
-            return False
+            except Exception as e:
+                raise Exception(f"Failed to drop database: {e}")
 
     def optimize(self) -> None:
         """Optimize database by running VACUUM."""

@@ -173,9 +173,45 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 endpoint="repo view",
             )
 
+    def get_lines_of_code(self) -> int:
+        """Get total lines of code in the repository"""
+        try:
+            # Use a simpler command that doesn't rely on pipes
+            files_output = self.command_runner.run_command(
+                ["git", "ls-files"],
+                self.repo_path,
+            )
+            total_lines = 0
+            for file in files_output.splitlines():
+                try:
+                    lines = self.command_runner.run_command(
+                        ["wc", "-l", file],
+                        self.repo_path,
+                    )
+                    total_lines += int(lines.split()[0])
+                except (ValueError, IndexError, GitCommandError):
+                    continue
+            return total_lines
+        except Exception as e:
+            log.warning(f"Could not fetch lines of code: {str(e)}")
+            return 0
+
+    def get_open_issues(self) -> int:
+        """Get number of open issues using GitHub CLI"""
+        try:
+            repo_info = self.command_runner.run_command(
+                ["gh", "repo", "view", "--json", "issues"],
+                self.repo_path,
+            )
+            data = json.loads(repo_info)
+            return len([issue for issue in data.get("issues", []) if issue.get("state") == "OPEN"])
+        except Exception as e:
+            log.warning(f"Could not fetch open issues: {str(e)}")
+            return 0
+
     def _normalize_metrics(self, metrics: dict) -> dict:
         """Normalize metrics to 0-1 scale"""
-        return {
+        normalized = {
             "age": min(metrics["age_days"] / self.normalizers["max_age_days"], 1.0),
             "update_frequency": 1.0
             - min(
@@ -188,7 +224,10 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
             ),
             "stars": min(metrics["stars"] / self.normalizers["max_stars"], 1.0),
             "commits": min(metrics["commit_count"] / self.normalizers["max_commits"], 1.0),
+            "lines_of_code": min(metrics["lines_of_code"] / self.normalizers["max_lines_of_code"], 1.0),
+            "open_issues": min(metrics["open_issues"] / self.normalizers["max_open_issues"], 1.0),
         }
+        return normalized
 
     def _calculate_score(self, normalized_metrics: dict) -> float:
         """Calculate weighted social signal score"""
@@ -203,6 +242,8 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 "contributor_count": self.get_contributor_count(),
                 "stars": self.get_stars(),
                 "commit_count": self.get_commit_count(),
+                "lines_of_code": self.get_lines_of_code(),
+                "open_issues": self.get_open_issues(),
             }
 
             normalized = self._normalize_metrics(raw_metrics)
@@ -217,6 +258,8 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 contributor_count=raw_metrics["contributor_count"],
                 stars=raw_metrics["stars"],
                 commit_count=raw_metrics["commit_count"],
+                lines_of_code=raw_metrics["lines_of_code"],
+                open_issues=raw_metrics["open_issues"],
                 social_signal=social_signal,
                 last_analyzed=time.time(),
             )

@@ -8,27 +8,6 @@ db_cmds = typer.Typer()
 
 
 @db_cmds.command()
-def clear(
-    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
-):
-    """Clear all data from the database."""
-    if debug:
-        log.set_debug(debug)
-    try:
-        db = get_db()
-        count = db.clear_all()
-
-        if not typer.confirm(f"Are you sure you want to delete {count} repositories?"):
-            raise typer.Abort()
-
-        db.clear_all()
-        display.success("Successfully cleared all repository data")
-    except Exception as e:
-        display.error(f"Error clearing database: {e}")
-        raise typer.Exit(1)
-
-
-@db_cmds.command()
 def stats(
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
@@ -46,24 +25,28 @@ def stats(
 
 @db_cmds.command()
 def remove(
-    repo_name: str = typer.Argument(..., help="Name of the repository to remove"),
+    drop_db: bool = typer.Option(False, "--drop-db", help="Drop the entire database file"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
-    """Remove a specific repository from the database."""
+    """Remove a specific repository or drop the entire database."""
     if debug:
         log.set_debug(debug)
     try:
         db = get_db()
 
-        if not typer.confirm(f"Are you sure you want to delete repository '{repo_name}'?"):
-            raise typer.Abort()
+        if drop_db:
+            if not typer.confirm("Are you sure you want to drop the entire database? This cannot be undone!"):
+                raise typer.Abort()
 
-        if db.remove_repository(repo_name):
-            display.success(f"Successfully removed repository '{repo_name}'")
+            if db.remove_db(drop_db=True):
+                display.success("Successfully dropped database file")
+            return
         else:
-            display.warn(f"Repository '{repo_name}' not found in database")
+            display.warn("Include --drop-db flag to drop the database file")
+            raise typer.Exit(1)
+
     except Exception as e:
-        display.error(f"Error removing repository: {e}")
+        display.error(f"Error dropping db: {e}")
         raise typer.Exit(1)
 
 
