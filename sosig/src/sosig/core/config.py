@@ -1,6 +1,6 @@
 import os
 import math
-from typing import Dict, ClassVar, Optional
+from typing import Dict, ClassVar
 from pathlib import Path
 
 from pydantic import Field, BaseModel
