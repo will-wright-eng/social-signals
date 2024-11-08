@@ -203,9 +203,20 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 ["gh", "repo", "view", "--json", "issues"],
                 self.repo_path,
             )
+            log.debug(f"GitHub API Response: {repo_info}")
             data = json.loads(repo_info)
-            return len([issue for issue in data.get("issues", []) if issue.get("state") == "OPEN"])
-        except Exception as e:
+            log.debug(f"GitHub API Response: {data}")
+
+            # Handle the new API response structure
+            if (
+                isinstance(data, dict)
+                and "issues" in data
+                and isinstance(data["issues"], dict)
+                and "totalCount" in data["issues"]
+            ):
+                return data["issues"]["totalCount"]
+            return 0
+        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
             log.warning(f"Could not fetch open issues: {str(e)}")
             return 0
 
