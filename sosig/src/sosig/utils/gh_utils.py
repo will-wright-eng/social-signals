@@ -205,7 +205,6 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
             )
             log.debug(f"GitHub API Response: {repo_info}")
             data = json.loads(repo_info)
-            log.debug(f"GitHub API Response: {data}")
 
             # Handle the new API response structure
             if (

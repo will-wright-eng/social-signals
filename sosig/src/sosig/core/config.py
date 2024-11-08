@@ -27,6 +27,11 @@ class PathManager:
         return data_dir
 
     @staticmethod
+    def get_workspace_dir() -> Path:
+        """Get workspace directory for temporary repository operations"""
+        return PathManager.get_data_dir() / "workspace"
+
+    @staticmethod
     def get_config_dir() -> Path:
         """Get XDG config directory for the application"""
         base_dir = (
@@ -105,6 +110,7 @@ class Config(BaseModel):
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     metrics: MetricsConfig = Field(default_factory=MetricsConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
+    workspace: Path = Field(default_factory=PathManager.get_workspace_dir)
 
 
 settings = Config()

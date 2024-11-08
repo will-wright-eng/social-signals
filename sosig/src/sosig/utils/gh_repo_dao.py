@@ -34,7 +34,7 @@ class RepositoryDAO:
                 for repo in query.all()
             ]
 
-    def save_metrics(self, metrics: RepoMetrics) -> RepoMetrics:
+    def save_metrics(self, metrics: RepoMetrics) -> Repository:
         """Save or update repository metrics."""
         with self.db.get_session() as session:
             existing = session.query(Repository).filter_by(path=metrics.path).first()

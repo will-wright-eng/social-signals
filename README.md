@@ -24,6 +24,13 @@ pip install -r requirements.lock
 pip install -r requirements-dev.lock
 ```
 
+### Requirements
+
+The CLI was setup on my macbook pro so the current support is exclusive to MacOS with the following command line tools:
+
+- `git`
+- `gh`
+
 ## Usage
 
 SOSIG provides three main command groups:
