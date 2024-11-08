@@ -68,8 +68,9 @@ main() {
     check_dependencies
 
     local username="$1"
-    local base_dir="${2:-$(pwd)}"
-    local output_dir="$base_dir/results/$username"
+    # Get the absolute path to the script's directory
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local output_dir="$script_dir/results/$username"
 
     # Create output directory if it doesn't exist
     mkdir -p "$output_dir"

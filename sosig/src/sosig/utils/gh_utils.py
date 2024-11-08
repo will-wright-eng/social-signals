@@ -272,6 +272,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 open_issues=raw_metrics["open_issues"],
                 social_signal=social_signal,
                 last_analyzed=time.time(),
+                date_created=time.time(),
             )
 
         except (GitCommandError, GitHubAPIError) as e:
