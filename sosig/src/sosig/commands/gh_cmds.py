@@ -44,7 +44,16 @@ def list(
     """List all analyzed repositories in the database."""
     if debug:
         log.set_debug(debug)
-    valid_sort_fields = ["social_signal", "name", "username", "stars", "age_days", "last_analyzed", "commit_count"]
+    valid_sort_fields = [
+        "repository",
+        "social_signal",
+        "name",
+        "username",
+        "stars",
+        "age_days",
+        "last_analyzed",
+        "commit_count",
+    ]
     if sort_by not in valid_sort_fields:
         display.error(f"Invalid sort field '{sort_by}'. Valid options are: {', '.join(valid_sort_fields)}")
         raise typer.Exit(1)
