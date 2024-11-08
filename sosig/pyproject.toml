@@ -1,6 +1,6 @@
 [project]
 name = "sosig"
-version = "0.2.0"
+version = "0.2.1"
 description = "A command-line tool for analyzing GitHub repositories and calculating social signals based on various metrics."
 authors = [
     { name = "willwrighteng", email = "will.wright.engineeering@gmail.com" }
