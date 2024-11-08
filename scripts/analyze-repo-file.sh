@@ -44,7 +44,7 @@ while IFS= read -r url || [ -n "$url" ]; do
     echo "Analyzing: $url"
 
     # Run the analysis command and always display the output
-    output=$(sosig gh analyze "$url" 2>&1)
+    output=$(sosig gh analyze "$url" --debug 2>&1)
     exit_code=$?
 
     if [ $exit_code -eq 0 ]; then
