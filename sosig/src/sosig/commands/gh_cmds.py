@@ -5,6 +5,7 @@ from pathlib import Path
 
 import typer
 
+from ..core.config import settings
 from ..core.logger import log
 from ..core.interfaces import RepoMetrics
 from ..utils.gh_analyzer import RepositoryAnalyzer
@@ -74,7 +75,7 @@ def list(
 def analyze(
     repo_paths: List[str] = typer.Argument(..., help="Paths to local git repositories"),
     workspace: Path = typer.Option(
-        Path.home() / ".local" / "share" / "ssig" / "workspace",
+        settings.workspace,
         help="Directory for cloning repositories",
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Force reanalysis of repositories"),

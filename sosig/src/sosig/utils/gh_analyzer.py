@@ -24,6 +24,7 @@ class RepositoryAnalyzer:
         analyzer = GitHubAnalyzerImpl(repo_path)
         metrics = analyzer.calculate_social_signal()
 
+        # Save and return a detached copy
         return self.repository_dao.save_metrics(metrics)
 
     def _is_analysis_fresh(self, repo: models.Repository) -> bool:

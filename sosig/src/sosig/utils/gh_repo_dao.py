@@ -38,7 +38,7 @@ class RepositoryDAO:
                 for repo in query.all()
             ]
 
-    def save_metrics(self, metrics: RepoMetrics) -> RepoMetrics:
+    def save_metrics(self, metrics: RepoMetrics) -> Repository:
         """Save or update repository metrics."""
         with self.db.get_session() as session:
             existing = session.query(Repository).filter_by(path=metrics.path).first()
@@ -47,10 +47,14 @@ class RepositoryDAO:
                 # Update existing repository using from_metrics
                 for field in RepoMetrics.get_metric_fields():
                     setattr(existing, field, getattr(metrics, field))
+                repo = existing
             else:
                 # Create new repository
-                existing = Repository.from_metrics(metrics)
-                session.add(existing)
+                repo = Repository.from_metrics(metrics)
+                session.add(repo)
 
             session.commit()
-            return existing
+            # Create a detached copy with all attributes loaded
+            return Repository(
+                **{k: v for k, v in repo.__dict__.items() if not k.startswith("_")},
+            )

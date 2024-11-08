@@ -7,6 +7,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.progress import Progress, TextColumn, SpinnerColumn
 
+from ..core.config import Config
 from ..core.interfaces import RepoMetrics
 
 
@@ -181,9 +182,10 @@ class DisplayService:
         """Display a success message"""
         self.console.print(f"[green]{message}[/green]")
 
-    def show_config(self, config: dict, paths: dict) -> None:
+    def show_config(self, settings: Config, paths: dict) -> None:
         """Display configuration and paths"""
-        self.console.print_json(json.dumps(config, indent=2))
+        # Use model_dump_json() to get a JSON string directly from the Pydantic model
+        self.console.print_json(settings.model_dump_json())
         self.console.print("[bold]Application Paths:[/bold]")
         for key, value in paths.items():
             self.console.print(f"{key}: {value}")

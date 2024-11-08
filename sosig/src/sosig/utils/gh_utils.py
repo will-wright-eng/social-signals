@@ -204,9 +204,22 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 self.repo_path,
             )
             data = json.loads(repo_info)
-            return len([issue for issue in data.get("issues", []) if issue.get("state") == "OPEN"])
+            log.debug(f"Open issues: {data}")
+            if not isinstance(data, dict):
+                log.warning("Unexpected API response format: %s", str(data))
+                return 0
+            issues = data.get("issues", [])
+            if not isinstance(issues, list):
+                return len([issue for issue in issues if isinstance(issue, dict) and issue.get("state") == "OPEN"])
+            elif isinstance(issues, dict):
+                return issues.get("totalCount", 0)
+            else:
+                return 0
+        except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+            log.warning("Could not fetch open issues: %s", str(e))
+            return 0
         except Exception as e:
-            log.warning(f"Could not fetch open issues: {str(e)}")
+            log.warning("Unexpected error fetching open issues: %s", str(e))
             return 0
 
     def _normalize_metrics(self, metrics: dict) -> dict:
