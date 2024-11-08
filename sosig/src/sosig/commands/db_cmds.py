@@ -101,3 +101,26 @@ def schema(
     except Exception as e:
         display.error(f"Error getting schema information: {e}")
         raise typer.Exit(1)
+
+
+@db_cmds.command()
+def dump(
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
+    """Dump all repository data from the database."""
+    if debug:
+        log.set_debug(debug)
+    try:
+        db = get_db()
+        repositories = db.get_all_repositories()
+
+        if not repositories:
+            display.info("No repositories found in database")
+            return
+
+        # Use the new method that shows all fields
+        display.show_full_repository_details(repositories)
+
+    except Exception as e:
+        display.error(f"Error dumping database contents: {e}")
+        raise typer.Exit(1)

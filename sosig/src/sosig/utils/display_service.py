@@ -66,6 +66,24 @@ class DisplayService:
             "width": 12,
             "justify": "left",
         },
+        "lines_of_code": {
+            "label": "Lines of Code",
+            "format": str,
+            "width": 12,
+            "justify": "right",
+        },
+        "open_issues": {
+            "label": "Open Issues",
+            "format": str,
+            "width": 10,
+            "justify": "right",
+        },
+        "path": {
+            "label": "Path",
+            "format": str,
+            "width": 40,
+            "justify": "left",
+        },
     }
 
     TABLE_STYLE = {
@@ -203,6 +221,46 @@ class DisplayService:
     def info(self, message: str) -> None:
         """Display an info message"""
         self.console.print(message)
+
+    def show_full_repository_details(self, repos: List[RepoMetrics]) -> None:
+        """Display complete repository details in a table"""
+        if not repos:
+            self.warn("No repositories found in database")
+            return
+
+        fields_to_show = [
+            "name",
+            "path",
+            "username",
+            "age_days",
+            "update_frequency_days",
+            "contributor_count",
+            "stars",
+            "commit_count",
+            "lines_of_code",
+            "open_issues",
+            "social_signal",
+            "last_analyzed",
+        ]
+
+        table = self._create_table("Complete Repository Details")
+
+        # Add columns
+        for field in fields_to_show:
+            field_config = self.FIELD_LABELS[field]
+            table.add_column(
+                field_config["label"],
+                width=field_config["width"],
+                justify=field_config["justify"],
+                no_wrap=True,
+            )
+
+        # Add rows
+        for metrics in repos:
+            row_data = [self.FIELD_LABELS[field]["format"](getattr(metrics, field)) for field in fields_to_show]
+            table.add_row(*row_data)
+
+        self.console.print(table)
 
 
 display = DisplayService()

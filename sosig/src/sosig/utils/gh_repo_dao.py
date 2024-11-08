@@ -11,17 +11,13 @@ class RepositoryDAO:
     def __init__(self):
         self.db = get_db()
 
-    def get_by_path(self, path: str) -> Optional[Repository]:
+    def get_by_path(self, path: str) -> Optional[RepoMetrics]:
         """Get repository by path."""
         with self.db.get_session() as session:
             repo = session.query(Repository).filter_by(path=path).first()
             if repo:
-                # Refresh to ensure all attributes are loaded
-                session.refresh(repo)
-                # Create a detached copy with all attributes loaded
-                return Repository(
-                    **{k: v for k, v in repo.__dict__.items() if not k.startswith("_")},
-                )
+                # Convert to RepoMetrics directly to avoid detached instance issues
+                return repo.to_metrics()
             return None
 
     def get_all(self, sort_by: str = "social_signal") -> List[RepoMetrics]:
@@ -44,13 +40,15 @@ class RepositoryDAO:
             existing = session.query(Repository).filter_by(path=metrics.path).first()
 
             if existing:
-                # Update existing repository using from_metrics
+                # Update existing repository
                 for field in RepoMetrics.get_metric_fields():
                     setattr(existing, field, getattr(metrics, field))
+                repo = existing
             else:
                 # Create new repository
-                existing = Repository.from_metrics(metrics)
-                session.add(existing)
+                repo = Repository.from_metrics(metrics)
+                session.add(repo)
 
             session.commit()
-            return existing
+            # Return metrics object instead of Repository model
+            return repo.to_metrics()
