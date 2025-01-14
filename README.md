@@ -14,13 +14,16 @@ A command-line tool for analyzing GitHub repositories and calculating social sig
 
 ```bash
 # Clone the repository
-git clone https://github.com/will-wright-eng/sosig.git
-cd sosig
+git clone https://github.com/will-wright-eng/social-signals.git
+cd social-signals/sosig/
 
-# Install dependencies
+# Install dependencies (rye is the perferred project manager)
+rye sync
+
+# or, using pip
 pip install -r requirements.lock
 
-# For development
+# for development
 pip install -r requirements-dev.lock
 ```
 
@@ -43,6 +46,41 @@ sosig gh analyze path/to/repo1 path/to/repo2
 
 # List analyzed repositories
 sosig gh list
+```
+
+alternatively, you can use the bash scripts to analyze repos from a specific user
+
+```bash
+# generate public_repo_urls.txt file
+make user-repos user=will-wright-eng
+
+# analyze each repo in list
+make analyze-repos user=will-wright-eng
+```
+
+you can create a custom list to analyze using the following steps
+
+```bash
+mkdir scripts/results/tf
+cat << EOF >> scripts/results/tf/public_repo_urls.txt
+github.com/gruntwork-io/terragrunt
+github.com/cycloidio/terracognita
+github.com/gruntwork-io/terratest
+github.com/open-policy-agent/opa
+github.com/bridgecrewio/checkov
+github.com/terraform-compliance/cli
+github.com/hashicorp/terraform
+github.com/aquasecurity/tfsec
+github.com/terraform-linters/tflint
+github.com/tenable/terrascan
+github.com/env0/terratag
+github.com/minamijoyo/tfmigrate
+github.com/opentofu/opentofu
+github.com/dineshba/tf-summarize
+EOF
+
+# analyze custom list of open source repos
+make analyze-repos user=tf
 ```
 
 ### Database Operations (`db`)

@@ -9,6 +9,20 @@ help: ## list make commands
 	@echo ${MAKEFILE_LIST}
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+user-repos: ## fetch user repos (usage: make user-repos user=username)
+	@if [ -z "$(user)" ]; then \
+		echo "Error: user parameter is required. Usage: make user-repos user=username"; \
+		exit 1; \
+	fi
+	bash scripts/fetch-repos.sh "$(user)"
+
+analyze-repos: ## analyze user repos (usage: make analyze-repos user=username)
+	@if [ -z "$(user)" ]; then \
+		echo "Error: user parameter is required. Usage: make analyze-repos user=username"; \
+		exit 1; \
+	fi
+	bash scripts/analyze-repo-file.sh "$(REPO_ROOT)/scripts/results/$(user)/public_repo_urls.txt"
+
 #* Cleaning
 pycache-remove: ## cleanup subcommand - pycache-remove
 	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf

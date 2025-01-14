@@ -76,19 +76,37 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
 
     def get_repo_age(self) -> float:
         """Calculate repository age in days"""
-        first_commit_date = self.command_runner.run_command(
-            [
-                "git",
-                "log",
-                "--reverse",
-                "--format=%ct",
-                "--max-parents=0",
-            ],
-            self.repo_path,
-        )
-        creation_timestamp = float(first_commit_date)
-        current_timestamp = time.time()
-        return (current_timestamp - creation_timestamp) / (24 * 3600)
+        try:
+            first_commit_date = self.command_runner.run_command(
+                [
+                    "git",
+                    "log",
+                    "--reverse",
+                    "--format=%ct",
+                    "--max-parents=0",
+                    "--max-count=1",
+                ],
+                self.repo_path,
+            )
+            log.debug(f"Raw first commit date output: {first_commit_date!r}")
+
+            # Strip whitespace and newlines
+            first_commit_date = first_commit_date.strip()
+
+            if not first_commit_date:
+                log.warning(f"No commit dates found for repository: {self.repo_path}")
+                return 0.0
+
+            creation_timestamp = float(first_commit_date)
+            current_timestamp = time.time()
+            age_days = (current_timestamp - creation_timestamp) / (24 * 3600)
+
+            log.debug(f"Repository age calculation: creation_timestamp={creation_timestamp}, age_days={age_days}")
+            return age_days
+
+        except (ValueError, GitCommandError) as e:
+            log.error(f"Error calculating repository age: {str(e)} for {self.repo_path}")
+            return 0.0
 
     def get_update_frequency(self) -> float:
         """Calculate average days between updates"""

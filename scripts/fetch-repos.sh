@@ -4,6 +4,7 @@ set -euo pipefail
 
 readonly DEFAULT_LIMIT=100
 readonly REQUIRED_COMMANDS=("gh" "jq")
+readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 check_dependencies() {
     for cmd in "${REQUIRED_COMMANDS[@]}"; do
@@ -27,6 +28,12 @@ validate_inputs() {
     if [ $# -lt 1 ]; then
         echo "Error: GitHub username is required" >&2
         show_usage
+    fi
+
+    # Validate username format
+    if [[ ! "$1" =~ ^[a-zA-Z0-9-]+$ ]]; then
+        echo "Error: Invalid GitHub username format" >&2
+        exit 1
     fi
 }
 
@@ -68,9 +75,7 @@ main() {
     check_dependencies
 
     local username="$1"
-    # Get the absolute path to the script's directory
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local output_dir="$script_dir/results/$username"
+    local output_dir="$REPO_ROOT/results/$username"
 
     # Create output directory if it doesn't exist
     mkdir -p "$output_dir"
