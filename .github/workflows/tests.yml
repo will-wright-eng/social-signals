@@ -37,6 +37,7 @@ jobs:
     - name: Run tests
       run: |
         cd sosig
+        source .venv/bin/activate
         pytest tests/ -v --cov=sosig --cov-report=xml
 
     - name: Upload coverage reports to Codecov
