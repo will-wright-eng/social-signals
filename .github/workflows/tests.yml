@@ -2,10 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ '*' ]  # Run on all branches
-  pull_request:
-    branches: [ '*' ]  # Run on PRs to all branches
-  workflow_dispatch:  # Allows manual triggering
+    branches: [ '*' ]
+  pull_request:  # Added to run tests on PRs
+  workflow_dispatch:
 
 jobs:
   test:
@@ -13,15 +12,18 @@ jobs:
     strategy:
       fail-fast: false  # Allows other Python versions to complete if one fails
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]  # Added 3.10 since it's your minimum version
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for better coverage reporting
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'uv'  # Enable caching for uv
 
     - name: Install uv
       uses: astral-sh/setup-uv@v5
@@ -34,25 +36,29 @@ jobs:
         uv venv
         source .venv/bin/activate
         uv pip install -e ".[dev]"
-        uv pip install pytest pytest-cov pytest-mock
+        uv pip install pytest pytest-cov pytest-mock pytest-xdist pytest-sugar pytest-randomly
 
     - name: Run tests
       run: |
         cd sosig
         source .venv/bin/activate
-        pytest tests/ -v --cov=sosig --cov-report=xml
+        pytest tests/ -v --cov=sosig --cov-report=xml --cov-report=term-missing -n auto --random-order
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
+      continue-on-error: true
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: sosig/coverage.xml
-        fail_ci_if_error: true
+        fail_ci_if_error: false  # Changed to false to ensure CI continues
 
     - name: Store test results
       uses: actions/upload-artifact@v4
-      if: always()  # Upload even if tests fail
+      if: always()
       with:
         name: test-results-${{ matrix.python-version }}
-        path: sosig/coverage.xml
+        path: |
+          sosig/coverage.xml
+          sosig/.pytest_cache
+          sosig/.coverage
         retention-days: 30
