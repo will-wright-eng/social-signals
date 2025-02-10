@@ -38,7 +38,7 @@ sosig = "sosig:cli"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=sosig --cov-report=term-missing"
-testpaths = ["tests"]
+testpaths = ["../tests"]
 
 [tool.coverage.run]
 source = ["sosig"]
