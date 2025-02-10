@@ -78,6 +78,7 @@ def analyze(
         settings.workspace,
         help="Directory for cloning repositories",
     ),
+    group: str = typer.Option(None, "--group", "-g", help="Group name for the repositories"),
     force: bool = typer.Option(False, "--force", "-f", help="Force reanalysis of repositories"),
     cleanup: bool = typer.Option(True, "--cleanup/--no-cleanup", help="Clean up repositories after analysis"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
@@ -90,7 +91,7 @@ def analyze(
     try:
         service = _init_services()
         with display.status("Analyzing repositories..."):
-            results = service.analyze_repositories(repo_paths, workspace, force)
+            results = service.analyze_repositories(repo_paths, workspace, force, group)
             _display_analysis_results(results)
     except Exception as e:
         display.error(f"Error analyzing repositories: {e}\n{traceback.format_exc()}")

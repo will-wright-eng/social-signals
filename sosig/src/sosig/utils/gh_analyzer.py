@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 from .gh_utils import GitHubAnalyzerImpl
 from .gh_repo_dao import RepositoryDAO
@@ -11,7 +12,7 @@ class RepositoryAnalyzer:
     def __init__(self, repository_dao: RepositoryDAO):
         self.repository_dao = repository_dao
 
-    def analyze_repository(self, repo_path: str, force_update: bool = False) -> Repository:
+    def analyze_repository(self, repo_path: str, force_update: bool = False, group: Optional[str] = None) -> Repository:
         """Analyze repository and return metrics"""
         try:
             # Get existing metrics from database if not forcing update
@@ -22,7 +23,7 @@ class RepositoryAnalyzer:
 
             # Calculate new metrics
             analyzer = GitHubAnalyzerImpl(repo_path)
-            metrics = analyzer.calculate_social_signal()
+            metrics = analyzer.calculate_social_signal(group)
 
             # Save and return the metrics
             return self.repository_dao.save_metrics(metrics)

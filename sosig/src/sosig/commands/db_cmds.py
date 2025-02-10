@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import typer
 
@@ -106,10 +107,10 @@ def schema(
 
 
 @db_cmds.command()
-def dump(
+def show(
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
-    """Dump all repository data from the database."""
+    """Show all repository data from the database."""
     if debug:
         log.set_debug(debug)
     try:
@@ -131,9 +132,13 @@ def dump(
 @db_cmds.command()
 def export(
     output_dir: str = typer.Option(".", "--output-dir", "-o", help="Directory to save the CSV file"),
+    fields: List[str] = typer.Option(None, "--fields", "-f", help="Comma-separated list of fields to export. Default: all fields"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
-    """Export all repository data to a CSV file."""
+    """Export repository data to a CSV file.
+
+    If no fields are specified, all fields will be exported.
+    """
     if debug:
         log.set_debug(debug)
     try:
@@ -142,7 +147,11 @@ def export(
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
 
-        filepath = db.export_to_csv(output_dir)
+        # Convert comma-separated string to list if needed
+        if fields and isinstance(fields, str):
+            fields = [f.strip() for f in fields.split(",")]
+
+        filepath = db.export_to_csv(output_dir, fields)
         display.success(f"Successfully exported data to: {filepath}")
     except Exception as e:
         display.error(f"Error exporting database contents: {e}")

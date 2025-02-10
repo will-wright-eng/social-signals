@@ -1,0 +1,66 @@
+name: Tests
+
+on:
+  push:
+    branches: [ '*' ]  # Run on all branches
+  pull_request:
+    branches: [ '*' ]  # Run on PRs to all branches
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false  # Allows other Python versions to complete if one fails
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]  # Added 3.10 since it's your minimum version
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'  # Enables caching of pip dependencies
+
+    - name: Install Rye
+      run: |
+        curl -sSf https://rye-up.com/get | bash
+        echo "$HOME/.rye/shims" >> $GITHUB_PATH
+
+    - name: Cache Rye dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.rye
+          .venv
+        key: ${{ runner.os }}-rye-${{ hashFiles('sosig/pyproject.toml') }}-${{ hashFiles('requirements.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-rye-
+
+    - name: Install dependencies
+      run: |
+        cd sosig  # Change to the sosig directory
+        rye sync
+        rye show
+
+    - name: Run tests
+      run: |
+        cd sosig  # Change to the sosig directory
+        rye run pytest tests/ -v --cov=sosig --cov-report=xml
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: sosig/coverage.xml
+        fail_ci_if_error: true
+
+    - name: Store test results
+      uses: actions/upload-artifact@v4
+      if: always()  # Upload even if tests fail
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: sosig/coverage.xml
+        retention-days: 30

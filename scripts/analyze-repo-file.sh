@@ -34,7 +34,7 @@ setup_environment() {
 
 analyze_repos() {
     local input_file="$1"
-    
+
     echo "Starting analysis at $(date)"
     echo "Reading repos from: $input_file"
     echo "----------------------------------------"

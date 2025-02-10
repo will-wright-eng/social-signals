@@ -18,6 +18,7 @@ class RepoMetrics:
     lines_of_code: int
     open_issues: int
     social_signal: float
+    group: Optional[str] = None
     id: Optional[int] = None
     last_analyzed: float = time.time()
     date_created: float = time.time()

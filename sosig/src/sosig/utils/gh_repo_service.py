@@ -21,13 +21,14 @@ class RepositoryService:
         paths: List[str],
         workspace: Path,
         force: bool = False,
+        group: Optional[str] = None,
     ) -> List[RepoMetrics]:
         """Analyze multiple repositories and return their metrics"""
         results = []
         for path in paths:
             try:
                 repo_path = workspace / Path(path).name
-                metrics = self._analyze_single_repo(path, repo_path, force)
+                metrics = self._analyze_single_repo(path, repo_path, force, group)
                 if metrics:
                     results.append(metrics)
             except (GitCommandError, GitHubAPIError) as e:
@@ -44,12 +45,13 @@ class RepositoryService:
         source_path: str,
         target_path: Path,
         force: bool,
+        group: Optional[str] = None,
     ) -> Optional[RepoMetrics]:
         """Analyze a single repository and return its metrics"""
         if not target_path.exists() or force:
             self._prepare_repository(source_path, target_path)
 
-        metrics = self.analyzer.analyze_repository(str(target_path), force_update=force)
+        metrics = self.analyzer.analyze_repository(str(target_path), force_update=force, group=group)
         return metrics
 
     def _prepare_repository(self, source: str, target: Path) -> None:

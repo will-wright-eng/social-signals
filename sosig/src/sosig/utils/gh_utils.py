@@ -1,7 +1,7 @@
 import json
 import time
 import subprocess
-from typing import List
+from typing import List, Optional
 
 from ..core.config import settings
 from ..core.logger import log
@@ -261,7 +261,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
         """Calculate weighted social signal score"""
         return sum(self.weights[key] * value for key, value in normalized_metrics.items()) * 100
 
-    def calculate_social_signal(self) -> RepoMetrics:
+    def calculate_social_signal(self, group: Optional[str] = None) -> RepoMetrics:
         """Perform complete repository analysis and calculate social signal score"""
         try:
             raw_metrics = {
@@ -291,6 +291,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 social_signal=social_signal,
                 last_analyzed=time.time(),
                 date_created=time.time(),
+                group=group,
             )
 
         except (GitCommandError, GitHubAPIError) as e:

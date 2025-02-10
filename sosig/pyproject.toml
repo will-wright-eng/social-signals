@@ -21,7 +21,11 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=4.1.0",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -31,3 +35,22 @@ packages = ["src/sosig"]
 
 [project.scripts]
 sosig = "sosig:cli"
+
+[tool.pytest.ini_options]
+addopts = "-v --cov=sosig --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["sosig"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]

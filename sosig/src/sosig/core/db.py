@@ -174,11 +174,12 @@ class Database:
                 "triggers": [{"name": trig[0], "table": trig[1]} for trig in triggers],
             }
 
-    def export_to_csv(self, output_dir: str = ".") -> str:
-        """Export all repository data to a CSV file.
+    def export_to_csv(self, output_dir: str = ".", fields: Optional[List[str]] = None) -> str:
+        """Export repository data to a CSV file.
 
         Args:
             output_dir: Directory where the CSV file will be saved
+            fields: List of field names to export. If None, exports all fields.
 
         Returns:
             Path to the created CSV file
@@ -194,14 +195,26 @@ class Database:
             filename = f"sosig_export_{timestamp}.csv"
             filepath = os.path.join(output_dir, filename)
 
-            # Get field names from the first repository
-            fieldnames = [k for k, v in repositories[0].__dict__.items() if not k.startswith("_")]
+            # Get all available field names from the first repository
+            all_fields = [k for k, v in repositories[0].__dict__.items() if not k.startswith("_")]
+
+            # Validate and filter fields if specified
+            if fields:
+                invalid_fields = [f for f in fields if f not in all_fields]
+                if invalid_fields:
+                    raise ValueError(f"Invalid fields specified: {', '.join(invalid_fields)}")
+                fieldnames = fields
+            else:
+                fieldnames = all_fields
 
             with open(filepath, "w", newline="") as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 for repo in repositories:
-                    writer.writerow({k: v for k, v in repo.__dict__.items() if not k.startswith("_")})
+                    # Only write requested fields
+                    row = {k: v for k, v in repo.__dict__.items()
+                          if not k.startswith("_") and k in fieldnames}
+                    writer.writerow(row)
 
             return filepath
 

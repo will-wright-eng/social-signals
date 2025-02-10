@@ -25,6 +25,7 @@ class Repository(Base):
     last_analyzed = Column(Float, nullable=True)
     lines_of_code = Column(Integer, nullable=True)
     open_issues = Column(Integer, nullable=True)
+    group = Column(String, nullable=True)
     date_created = Column(Float, nullable=False, default=time.time)
 
     def __repr__(self) -> str:
