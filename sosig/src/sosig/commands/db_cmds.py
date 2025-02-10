@@ -132,7 +132,12 @@ def show(
 @db_cmds.command()
 def export(
     output_dir: str = typer.Option(".", "--output-dir", "-o", help="Directory to save the CSV file"),
-    fields: List[str] = typer.Option(None, "--fields", "-f", help="Comma-separated list of fields to export. Default: all fields"),
+    fields: List[str] = typer.Option(
+        None,
+        "--fields",
+        "-f",
+        help="Comma-separated list of fields to export. Default: all fields",
+    ),
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
     """Export repository data to a CSV file.

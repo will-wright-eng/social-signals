@@ -56,7 +56,7 @@ def init(
 
     # Initialize database
     try:
-        db = get_db()
+        get_db()
         log.debug(f"✓ Initialized database at {PathManager.get_data_dir() / settings.database.filename}")
         display.success("Initialization complete!")
     except Exception as e:

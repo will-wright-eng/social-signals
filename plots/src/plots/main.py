@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
-import os
 from datetime import datetime
+
 import matplotlib.pyplot as plt
 
 
@@ -16,7 +16,7 @@ def parse_commit_data(file_path=None, data_string=None):
         tuple: Lists of dates and commit counts
     """
     if file_path:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             content = f.read()
     else:
         content = data_string
@@ -24,11 +24,11 @@ def parse_commit_data(file_path=None, data_string=None):
     dates = []
     commits = []
 
-    for line in content.strip().split('\n'):
+    for line in content.strip().split("\n"):
         if not line:
             continue
         count, date = line.split()
-        dates.append(datetime.strptime(date, '%Y-%m-%d'))
+        dates.append(datetime.strptime(date, "%Y-%m-%d"))
         commits.append(int(count))
 
     return dates, commits
@@ -43,11 +43,11 @@ def plot_commits(dates, commits, output_path=None):
         output_path (str, optional): Path to save the plot
     """
     plt.figure(figsize=(12, 6))
-    plt.plot(dates, commits, marker='o', linestyle='-', linewidth=2)
-    plt.title('Git Commits Per Day')
-    plt.xlabel('Date')
-    plt.ylabel('Number of Commits')
-    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.plot(dates, commits, marker="o", linestyle="-", linewidth=2)
+    plt.title("Git Commits Per Day")
+    plt.xlabel("Date")
+    plt.ylabel("Number of Commits")
+    plt.grid(True, linestyle="--", alpha=0.7)
     plt.xticks(rotation=45)
     plt.tight_layout()
 
@@ -58,9 +58,9 @@ def plot_commits(dates, commits, output_path=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Plot git commit history')
-    parser.add_argument('--input', '-i', help='Input file containing commit data')
-    parser.add_argument('--output', '-o', help='Output file path for the plot')
+    parser = argparse.ArgumentParser(description="Plot git commit history")
+    parser.add_argument("--input", "-i", help="Input file containing commit data")
+    parser.add_argument("--output", "-o", help="Output file path for the plot")
     args = parser.parse_args()
 
     # Use sample data if no input file is provided
@@ -86,11 +86,11 @@ def main():
 
     dates, commits = parse_commit_data(
         file_path=args.input,
-        data_string=sample_data if not args.input else None
+        data_string=sample_data if not args.input else None,
     )
 
     plot_commits(dates, commits, args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

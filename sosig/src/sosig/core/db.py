@@ -1,7 +1,7 @@
 import os
 import csv
 import time
-from typing import List, Optional
+from typing import List, Optional, Generator
 from contextlib import contextmanager
 
 from sqlalchemy import func, text, create_engine
@@ -48,9 +48,9 @@ class Database:
         models.Repository.validate_fields()  # Validate field consistency
 
     @contextmanager
-    def get_session(self) -> Session:
+    def get_session(self) -> Generator[Session, None, None]:
         """Provide a transactional scope around a series of operations."""
-        session = self.SessionLocal()
+        session = self.SessionLocal()  # noqa
         try:
             yield session
             session.commit()
@@ -184,39 +184,37 @@ class Database:
         Returns:
             Path to the created CSV file
         """
-        with self.get_session() as session:
-            repositories = self.get_all_repositories()
+        repositories = self.get_all_repositories()
 
-            if not repositories or len(repositories) == 0:
-                raise Exception("No data to export")
+        if not repositories or len(repositories) == 0:
+            raise Exception("No data to export")
 
-            # Create filename with timestamp
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            filename = f"sosig_export_{timestamp}.csv"
-            filepath = os.path.join(output_dir, filename)
+        # Create filename with timestamp
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        filename = f"sosig_export_{timestamp}.csv"
+        filepath = os.path.join(output_dir, filename)
 
-            # Get all available field names from the first repository
-            all_fields = [k for k, v in repositories[0].__dict__.items() if not k.startswith("_")]
+        # Get all available field names from the first repository
+        all_fields = [k for k, v in repositories[0].__dict__.items() if not k.startswith("_")]
 
-            # Validate and filter fields if specified
-            if fields:
-                invalid_fields = [f for f in fields if f not in all_fields]
-                if invalid_fields:
-                    raise ValueError(f"Invalid fields specified: {', '.join(invalid_fields)}")
-                fieldnames = fields
-            else:
-                fieldnames = all_fields
+        # Validate and filter fields if specified
+        if fields:
+            invalid_fields = [f for f in fields if f not in all_fields]
+            if invalid_fields:
+                raise ValueError(f"Invalid fields specified: {', '.join(invalid_fields)}")
+            fieldnames = fields
+        else:
+            fieldnames = all_fields
 
-            with open(filepath, "w", newline="") as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-                for repo in repositories:
-                    # Only write requested fields
-                    row = {k: v for k, v in repo.__dict__.items()
-                          if not k.startswith("_") and k in fieldnames}
-                    writer.writerow(row)
+        with open(filepath, "w", newline="") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for repo in repositories:
+                # Only write requested fields
+                row = {k: v for k, v in repo.__dict__.items() if not k.startswith("_") and k in fieldnames}
+                writer.writerow(row)
 
-            return filepath
+        return filepath
 
 
 def get_db(db_path: Optional[str] = None) -> Database:
