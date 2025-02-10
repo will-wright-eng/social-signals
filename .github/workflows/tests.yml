@@ -26,7 +26,7 @@ jobs:
 
     - name: Install Rye
       run: |
-        curl -sSf https://rye-up.com/get | bash
+        curl -sSf https://sh.rye-up.com | bash
         echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
     - name: Cache Rye dependencies
