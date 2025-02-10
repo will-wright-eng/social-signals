@@ -28,6 +28,7 @@ jobs:
       run: |
         curl -sSf https://sh.rye-up.com | bash
         echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        source "$HOME/.rye/env"
 
     - name: Cache Rye dependencies
       uses: actions/cache@v4
