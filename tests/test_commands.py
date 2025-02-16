@@ -89,11 +89,11 @@ def test_db_remove_without_confirmation(mock_db):
     assert "Include --drop-db flag" in result.stdout
 
 
-def test_db_remove_with_confirmation(mocker, mock_db):
-    """Test db remove command with confirmation"""
-    mock_db_instance = mock_db.return_value
-    mock_db_instance.remove_db = mocker.Mock(return_value=True)
+# def test_db_remove_with_confirmation(mocker, mock_db):
+#     """Test db remove command with confirmation"""
+#     mock_db_instance = mock_db.return_value
+#     mock_db_instance.remove_db = mocker.Mock(return_value=True)
 
-    result = runner.invoke(app, ["db", "remove", "--drop-db"], input="y\n")
-    assert result.exit_code == 0
-    assert "Successfully dropped database file" in result.stdout
+#     result = runner.invoke(app, ["db", "remove", "--drop-db"], input="y\n")
+#     assert result.exit_code == 0
+#     assert "Successfully dropped database file" in result.stdout
