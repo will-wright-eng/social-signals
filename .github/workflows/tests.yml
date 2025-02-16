@@ -24,6 +24,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'  # Changed from 'uv' to 'pip' for supported caching
+        cache-dependency-path: |
+          sosig/pyproject.toml
+          sosig/setup.cfg
+          sosig/setup.py
 
     - name: Install uv
       uses: astral-sh/setup-uv@v5
@@ -45,7 +49,7 @@ jobs:
         # First run tests sequentially to debug any issues
         PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v --cov=src/sosig --cov-report=xml --cov-report=term-missing
         # Then run in parallel if sequential tests pass
-        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v -n 2
+        # PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v -n 2
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
