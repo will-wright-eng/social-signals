@@ -14,6 +14,7 @@ def temp_workspace(tmp_path):
 @pytest.fixture
 def mock_db(mocker, tmp_path):
     """Mock database interactions with a temporary database"""
+    import sosig
     from sosig.core.db import Database
 
     test_db_path = tmp_path / "test.db"
@@ -23,6 +24,9 @@ def mock_db(mocker, tmp_path):
 
     db = Database(db_path=f"sqlite:///{test_db_path}")
     mock = mocker.patch("sosig.commands.db_cmds.get_db", return_value=db)
+
+    # Also patch the main db instance to avoid conflicts
+    sosig.db = db
 
     yield mock
 

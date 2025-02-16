@@ -4,7 +4,7 @@ import time
 from typing import List, Optional, Generator
 from contextlib import contextmanager
 
-from sqlalchemy import func, text, create_engine
+from sqlalchemy import func, text, inspect, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from . import models
@@ -44,7 +44,10 @@ class Database:
 
     def _initialize_database(self) -> None:
         """Initialize database schema and validate models"""
-        models.Base.metadata.create_all(self.engine)
+        # Check if tables exist before creating
+        inspector = inspect(self.engine)
+        if "repositories" not in inspector.get_table_names():
+            models.Base.metadata.create_all(self.engine)
         models.Repository.validate_fields()  # Validate field consistency
 
     @contextmanager
