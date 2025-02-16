@@ -17,9 +17,18 @@ def mock_db(mocker, tmp_path):
     from sosig.core.db import Database
 
     test_db_path = tmp_path / "test.db"
+    # Delete the file if it exists
+    if test_db_path.exists():
+        test_db_path.unlink()
+
     db = Database(db_path=f"sqlite:///{test_db_path}")
     mock = mocker.patch("sosig.commands.db_cmds.get_db", return_value=db)
-    return mock
+
+    yield mock
+
+    # Cleanup after test
+    if test_db_path.exists():
+        test_db_path.unlink()
 
 
 @pytest.fixture
