@@ -58,14 +58,14 @@ def test_main_help():
     assert "db" in result.stdout
 
 
-def test_config_show():
+def test_config_show(mock_db):
     """Test config show command"""
     result = runner.invoke(app, ["config", "show"])
     assert result.exit_code == 0
     assert "Config directory" in result.stdout
 
 
-def test_gh_analyze(temp_workspace, mock_repo_service):
+def test_gh_analyze(temp_workspace, mock_repo_service, mock_db):
     """Test gh analyze command"""
     mock_service = mock_repo_service.return_value
     mock_service.analyze_repositories.return_value = []
@@ -75,7 +75,7 @@ def test_gh_analyze(temp_workspace, mock_repo_service):
     mock_service.analyze_repositories.assert_called_once()
 
 
-def test_invalid_sort_field():
+def test_invalid_sort_field(mock_db):
     """Test gh list command with invalid sort field"""
     result = runner.invoke(app, ["gh", "list", "--sort", "invalid_field"])
     assert result.exit_code == 1
@@ -89,11 +89,11 @@ def test_db_remove_without_confirmation(mock_db):
     assert "Include --drop-db flag" in result.stdout
 
 
-# def test_db_remove_with_confirmation(mocker, mock_db):
-#     """Test db remove command with confirmation"""
-#     mock_db_instance = mock_db.return_value
-#     mock_db_instance.remove_db = mocker.Mock(return_value=True)
+def test_db_remove_with_confirmation(mocker, mock_db):
+    """Test db remove command with confirmation"""
+    mock_db_instance = mock_db.return_value
+    mock_db_instance.remove_db = mocker.Mock(return_value=True)
 
-#     result = runner.invoke(app, ["db", "remove", "--drop-db"], input="y\n")
-#     assert result.exit_code == 0
-#     assert "Successfully dropped database file" in result.stdout
+    result = runner.invoke(app, ["db", "remove", "--drop-db"], input="y\n")
+    assert result.exit_code == 0
+    assert "Successfully dropped database file" in result.stdout
