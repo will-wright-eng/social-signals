@@ -42,7 +42,10 @@ jobs:
       run: |
         cd sosig
         source .venv/bin/activate
-        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v --cov=src/sosig --cov-report=xml --cov-report=term-missing -n 2
+        # First run tests sequentially to debug any issues
+        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v --cov=src/sosig --cov-report=xml --cov-report=term-missing
+        # Then run in parallel if sequential tests pass
+        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v -n 2
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
