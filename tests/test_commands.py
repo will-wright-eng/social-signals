@@ -12,9 +12,13 @@ def temp_workspace(tmp_path):
 
 
 @pytest.fixture
-def mock_db(mocker):
-    """Mock database interactions"""
-    mock = mocker.patch("sosig.commands.db_cmds.get_db")
+def mock_db(mocker, tmp_path):
+    """Mock database interactions with a temporary database"""
+    from sosig.core.db import Database
+
+    test_db_path = tmp_path / "test.db"
+    db = Database(db_path=f"sqlite:///{test_db_path}")
+    mock = mocker.patch("sosig.commands.db_cmds.get_db", return_value=db)
     return mock
 
 
@@ -72,10 +76,10 @@ def test_db_remove_without_confirmation(mock_db):
     assert "Include --drop-db flag" in result.stdout
 
 
-def test_db_remove_with_confirmation(mock_db):
+def test_db_remove_with_confirmation(mocker, mock_db):
     """Test db remove command with confirmation"""
     mock_db_instance = mock_db.return_value
-    mock_db_instance.remove_db.return_value = True
+    mock_db_instance.remove_db = mocker.Mock(return_value=True)
 
     result = runner.invoke(app, ["db", "remove", "--drop-db"], input="y\n")
     assert result.exit_code == 0
