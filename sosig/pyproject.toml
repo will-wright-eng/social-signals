@@ -1,9 +1,9 @@
 [project]
 name = "sosig"
-version = "0.2.1"
+version = "0.3.0"
 description = "A command-line tool for analyzing GitHub repositories and calculating social signals based on various metrics."
 authors = [
-    { name = "willwrighteng", email = "will.wright.engineeering@gmail.com" }
+    { name = "will-wright-eng", email = "will.wright.engineeering@gmail.com" }
 ]
 dependencies = [
     "typer>=0.12.5",
