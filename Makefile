@@ -16,12 +16,12 @@ user-repos: ## fetch user repos (usage: make user-repos user=username)
 	fi
 	bash scripts/fetch-repos.sh "$(user)"
 
-analyze-repos: ## analyze user repos (usage: make analyze-repos user=username)
-	@if [ -z "$(user)" ]; then \
-		echo "Error: user parameter is required. Usage: make analyze-repos user=username"; \
+analyze-repos: ## analyze user repos (usage: make analyze-repos dir=directory-name)
+	@if [ -z "$(dir)" ]; then \
+		echo "Error: dir parameter is required. Usage: make analyze-repos dir=directory-name"; \
 		exit 1; \
 	fi
-	bash scripts/analyze-repo-file.sh "$(REPO_ROOT)/scripts/results/$(user)/public_repo_urls.txt"
+	bash scripts/analyze-repo-file.sh "$(REPO_ROOT)/scripts/results/$(dir)/public_repo_urls.txt"
 
 #* Cleaning
 pycache-remove: ## cleanup subcommand - pycache-remove

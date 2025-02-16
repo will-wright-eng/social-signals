@@ -87,8 +87,8 @@ def test_gh_analyze(temp_workspace, mock_repo_service, mock_db):
 
 
 def test_invalid_sort_field(mock_db):
-    """Test gh list command with invalid sort field"""
-    result = runner.invoke(app, ["gh", "list", "--sort", "invalid_field"])
+    """Test db list command with invalid sort field"""
+    result = runner.invoke(app, ["db", "list", "--sort", "invalid_field"])
     assert result.exit_code == 1
     assert "Invalid sort field" in result.stdout
 

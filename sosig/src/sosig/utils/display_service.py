@@ -12,6 +12,12 @@ from ..core.interfaces import RepoMetrics
 
 class DisplayService:
     FIELD_LABELS = {
+        "group": {
+            "label": "Group",
+            "format": str,
+            "width": 10,
+            "justify": "left",
+        },
         "name": {
             "label": "Repository",
             "format": str,
@@ -62,6 +68,12 @@ class DisplayService:
         },
         "last_analyzed": {
             "label": "Last Analyzed",
+            "format": lambda x: time.strftime("%Y-%m-%d", time.localtime(x)),
+            "width": 12,
+            "justify": "left",
+        },
+        "date_created": {
+            "label": "Date Created",
             "format": lambda x: time.strftime("%Y-%m-%d", time.localtime(x)),
             "width": 12,
             "justify": "left",
@@ -148,13 +160,13 @@ class DisplayService:
 
         self.console.print(table)
 
-    def show_repository_list(self, repos: List[RepoMetrics]) -> None:
+    def show_repository_list(self, repos: List[RepoMetrics], fields: List[str] = None) -> None:
         """Display repository list in a table"""
         if not repos:
             self.warn("No repositories found in database")
             return
 
-        fields_to_show = [
+        fields_to_show = fields or [
             "name",
             "username",
             "last_analyzed",
@@ -233,8 +245,8 @@ class DisplayService:
             return
 
         fields_to_show = [
+            "group",
             "name",
-            "path",
             "username",
             "age_days",
             "update_frequency_days",
@@ -244,7 +256,6 @@ class DisplayService:
             "lines_of_code",
             "open_issues",
             "social_signal",
-            "last_analyzed",
         ]
 
         table = self._create_table("Complete Repository Details")

@@ -1,8 +1,10 @@
 import os
+import traceback
 from typing import List
 
 import typer
 
+from .common import _init_services
 from ..core.db import get_db
 from ..core.logger import log
 from ..utils.display_service import display
@@ -126,6 +128,51 @@ def show(
 
     except Exception as e:
         display.error(f"Error dumping database contents: {e}")
+        raise typer.Exit(1)
+
+
+@db_cmds.command()
+def list(
+    sort_by: str = typer.Option("social_signal", "--sort", "-s", help="Sort by: social_signal, stars, age_days"),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
+    """List all analyzed repositories in the database."""
+    if debug:
+        log.set_debug(debug)
+
+    valid_sort_fields = [
+        "social_signal",
+        "name",
+        "username",
+        "stars",
+        "age_days",
+        "last_analyzed",
+        "commit_count",
+    ]
+
+    if sort_by not in valid_sort_fields:
+        display.error(f"Invalid sort field '{sort_by}'. Valid options are: {', '.join(valid_sort_fields)}")
+        raise typer.Exit(1)
+
+    fields = [
+        "group",
+        "username",
+        "name",
+        "social_signal",
+        "stars",
+        "last_analyzed",
+        "date_created",
+    ]
+
+    try:
+        log.debug("Listing repositories")
+        service = _init_services()
+        log.debug("Getting all repositories")
+        repos = service.get_all_repositories(sort_by=sort_by)
+        log.debug("Displaying repositories")
+        display.show_repository_list(repos, fields)
+    except Exception as e:
+        display.error(f"Error listing repositories: {e}\n{traceback.format_exc()}")
         raise typer.Exit(1)
 
 
