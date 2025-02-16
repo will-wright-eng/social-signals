@@ -23,7 +23,12 @@ def mock_db(mocker, tmp_path):
         test_db_path.unlink()
 
     db = Database(db_path=f"sqlite:///{test_db_path}")
-    mock = mocker.patch("sosig.commands.db_cmds.get_db", return_value=db)
+
+    # Patch get_db at the module level where it's imported
+    mock = mocker.patch("sosig.core.db.get_db", return_value=db)
+    # Also patch where it's used in commands
+    mocker.patch("sosig.commands.db_cmds.get_db", return_value=db)
+    mocker.patch("sosig.commands.config_cmds.get_db", return_value=db)
 
     # Also patch the main db instance to avoid conflicts
     sosig.db = db
