@@ -38,12 +38,6 @@ repos:
     - --fix
     verbose: true
     entry: bash -c 'markdownlint "$@" || true' --
-# - repo: https://github.com/psf/black
-#   rev: 24.10.0
-#   hooks:
-#   - id: black
-#     args:
-#     - "-l 120"
 - repo: https://github.com/pycqa/isort
   rev: 5.13.2
   hooks:
@@ -56,17 +50,6 @@ repos:
   - id: isort
     name: isort (pyi)
     types: [pyi]
-# - repo: https://github.com/pycqa/flake8
-#   rev: 7.1.1
-#   hooks:
-#   - id: flake8
-#     args: ['--ignore=E999,W504,W503,E501,B008']
-#     additional_dependencies:
-#     - flake8-bugbear
-#     - flake8-comprehensions
-#     - flake8-simplify
-#     verbose: true
-#     entry: bash -c 'flake8 "$@" || true' --
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.3.4
   hooks:
