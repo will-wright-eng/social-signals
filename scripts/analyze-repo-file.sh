@@ -34,9 +34,12 @@ setup_environment() {
 
 analyze_repos() {
     local input_file="$1"
-    
+    # Extract group name from parent directory of input file
+    local group_name=$(basename "$(dirname "$input_file")")
+
     echo "Starting analysis at $(date)"
     echo "Reading repos from: $input_file"
+    echo "Group name: $group_name"
     echo "----------------------------------------"
 
     while IFS= read -r url || [ -n "$url" ]; do
@@ -46,7 +49,7 @@ analyze_repos() {
         fi
 
         echo "Analyzing: $url"
-        output=$(sosig gh analyze "$url" --debug 2>&1)
+        output=$(sosig gh analyze "$url" --group "$group_name" --debug 2>&1)
         exit_code=$?
 
         if [ $exit_code -eq 0 ]; then

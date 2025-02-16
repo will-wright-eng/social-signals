@@ -1,0 +1,67 @@
+name: Tests
+
+on:
+  pull_request:
+    paths:
+      - 'sosig/**'
+      - '.github/workflows/tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false  # Allows other Python versions to complete if one fails
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for better coverage reporting
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "latest"
+
+    - name: Install dependencies
+      run: |
+        cd sosig
+        uv venv
+        source .venv/bin/activate
+        uv pip install -e ".[dev]"
+        uv pip install pytest-cov pytest-mock pytest-xdist
+
+    - name: Run tests
+      run: |
+        cd sosig
+        source .venv/bin/activate
+        # First run tests sequentially to debug any issues
+        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v --cov=src/sosig --cov-report=xml --cov-report=term-missing
+        # Then run in parallel if sequential tests pass
+        # PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v -n 2
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      continue-on-error: true
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: sosig/coverage.xml
+        fail_ci_if_error: false
+
+    - name: Store test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: |
+          sosig/coverage.xml
+          sosig/.pytest_cache
+          sosig/.coverage
+        retention-days: 30

@@ -43,9 +43,6 @@ SOSIG provides three main command groups:
 ```bash
 # Analyze repositories
 sosig gh analyze path/to/repo1 path/to/repo2
-
-# List analyzed repositories
-sosig gh list
 ```
 
 alternatively, you can use the bash scripts to analyze repos from a specific user
@@ -95,8 +92,17 @@ sosig db schema
 # Remove specific repository
 sosig db remove repo-name
 
+# Remove database
+sosig db remove --drop-db
+
 # Optimize database
 sosig db vacuum
+
+# Dump all data in repositories table
+sosig db show
+
+# List analyzed repositories
+sosig db list
 ```
 
 ### Configuration Operations (`config`)
@@ -111,7 +117,7 @@ sosig config show
 ```
 sosig/
 ├── src/sosig/
-│   ├── commands/          # CLI command implementations
+│   ├── commands/         # CLI command implementations
 │   ├── core/             # Core functionality and models
 │   └── utils/            # Utility functions and services
 ├── scripts/              # Helper scripts
@@ -134,7 +140,10 @@ The project includes several utility scripts:
 rye add pip
 rye sync
 rye build
+
 python -m pip install -e .
+# or
+source sosig/.venv/bin/activate
 ```
 
 ### Debug Mode
@@ -404,3 +413,52 @@ sosig gh analyze path/to/repo --workspace /custom/path
 | quietfoodie                    | 58.6                  | 2     | 10.1          | 46941         | 1079     | paposeco             | 2                 | 15           | 0           |
 | hugo-theme-huguette            | 33.0                  | 4     | 9.5           | 19786         | 1025     | cathelijne           | 2                 | 17           | 1           |
 | TatBanTheme2.0                 | 37.3                  | 1     | 9.2           | 4757          | 1018     | tatsatb              | 2                 | 17           | 1           |
+
+### Terraform Tools
+
+| username             | name         | update_frequency_days | stars | social_signal | lines_of_code | age_days | contributor_count | commit_count | open_issues |
+|----------------------|--------------|-----------------------|-------|---------------|---------------|----------|-------------------|--------------|-------------|
+| dineshba             | tf-summarize | 9.05                  | 546   | 42.3          | 33753         | 1096.7   | 20                | 121          | 13          |
+| minamijoyo           | tfmigrate    | 2.54                  | 1150  | 59.7          | 17085         | 1028.8   | 22                | 647          | 14          |
+| env0                 | terratag     | 5.92                  | 957   | 59.8          | 7664          | 1834.6   | 24                | 304          | 5           |
+| cycloidio            | terracognita | 2.68                  | 2228  | 75.7          | 36905         | 2164.7   | 1334              | 675          | 82          |
+| terraform-compliance | cli          | 2.40                  | 1367  | 78.3          | 62217         | 2843.7   | 46                | 1167         | 92          |
+| aquasecurity         | tfsec        | 1.58                  | 6741  | 79.3          | 66358         | 2142.6   | 123               | 1351         | 0           |
+| terraform-linters    | tflint       | 1.35                  | 5038  | 79.7          | 62411         | 3009.7   | 100               | 2224         | 25          |
+| tenable              | terrascan    | 1.54                  | 4796  | 81.7          | 106435        | 2682.2   | 93                | 1661         | 196         |
+| gruntwork-io         | terratest    | 1.03                  | 7558  | 81.8          | 91302         | 3237.3   | 303               | 3153         | 179         |
+| gruntwork-io         | terragrunt   | 1.20                  | 8327  | 85.1          | 138636        | 3157.4   | 345               | 2637         | 467         |
+| opentofu             | opentofu     | 0.12                  | 23811 | 87.8          | 579553        | 2779.5   | 2173              | 32444        | 208         |
+| bridgecrewio         | checkov      | 0.11                  | 7283  | 91.2          | 975845        | 1874.9   | 456               | 16830        | 153         |
+| open-policy-agent    | opa          | 0.61                  | 9855  | 93.3          | 2750512       | 3304.4   | 509               | 5417         | 382         |
+| hashicorp            | terraform    | 0.11                  | 43543 | 96.9          | 704491        | 2779.5   | 2154              | 33889        | 1809        |
+
+### Containers
+
+| username             | name            | age_days | contributor_count | commit_count | open_issues | update_frequency_days | stars  | social_signal | lines_of_code |
+|----------------------|-----------------|----------|-------------------|--------------|-------------|-----------------------|--------|---------------|---------------|
+| kubernetes           | kubernetes      | 3908     | 4857              | 128065       | 1877        | 0.03                  | 113088 | 100.0         | 6085732       |
+| hashicorp            | nomad           | 3548     | 855               | 26673        | 1515        | 0.13                  | 15228  | 99.9          | 1073470       |
+| kata-containers      | kata-containers | 2571     | 470               | 15313        | 1418        | 0.20                  | 5816   | 99.8          | 2089487       |
+| cilium               | cilium          | 3350     | 1034              | 35547        | 899         | 0.09                  | 20904  | 98.9          | 5781031       |
+| moby                 | buildkit        | 2817     | 357               | 7707         | 803         | 0.43                  | 8471   | 97.7          | 1506782       |
+| GoogleContainerTools | skaffold        | 2601     | 470               | 9040         | 777         | 0.29                  | 15195  | 97.5          | 3982495       |
+| containers           | podman          | 2664     | 775               | 24514        | 698         | 0.11                  | 25297  | 96.9          | 3280327       |
+| GoogleContainerTools | kaniko          | 2579     | 318               | 2250         | 689         | 1.14                  | 15205  | 95.9          | 1617959       |
+| tilt-dev             | tilt            | 2385     | 89                | 4893         | 469         | 0.49                  | 7911   | 94.3          | 2890385       |
+| containerd           | containerd      | 2858     | 717               | 14770        | 232         | 0.23                  | 17948  | 92.1          | 1531955       |
+| google               | gvisor          | 2151     | 278               | 9822         | 378         | 0.25                  | 16091  | 92.0          | 840678        |
+| containers           | buildah         | 2943     | 227               | 6070         | 149         | 0.48                  | 7624   | 91.1          | 2315699       |
+| goharbor             | harbor          | 2926     | 442               | 12312        | 636         | 0.27                  | 24828  | 90.6          | 449104        |
+| cri-o                | cri-o           | 3082     | 357               | 9912         | 50          | 0.31                  | 5322   | 90.2          | 2889396       |
+| qemu                 | qemu            | 4743     | 2606              | 118978       | 0           | 0.07                  | 10871  | 89.9          | 3501140       |
+| aquasecurity         | trivy           | 2139     | 454               | 3353         | 158         | 0.64                  | 24708  | 89.7          | 869888        |
+| hashicorp            | vagrant         | 5506     | 1263              | 16851        | 679         | 0.32                  | 26479  | 89.5          | 303039        |
+| projectcalico        | calico          | 1160     | 744               | 31259        | 341         | 0.13                  | 6206   | 86.3          | 844934        |
+| rook                 | rook            | 3139     | 597               | 11957        | 91          | 0.26                  | 12602  | 83.7          | 300232        |
+| lxc                  | lxc             | 6038     | 534               | 11810        | 171         | 0.51                  | 4774   | 82.7          | 146018        |
+| firecracker-microvm  | firecracker     | 2674     | 267               | 6609         | 60          | 0.40                  | 27055  | 82.7          | 239815        |
+| k3s-io               | k3s             | 2239     | 2926              | 3541         | 126         | 0.63                  | 28787  | 81.5          | 81197         |
+| falcosecurity        | falco           | 3315     | 234               | 4806         | 61          | 0.69                  | 7614   | 80.7          | 67615         |
+| lima-vm              | lima            | 1375     | 139               | 3878         | 315         | 0.35                  | 16165  | 80.0          | 80971         |
+| openebs              | openebs         | 3121     | 262               | 3014         | 36          | 1.04                  | 9153   | 79.7          | 22562         |

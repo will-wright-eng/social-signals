@@ -1,7 +1,10 @@
 import os
+import traceback
+from typing import List
 
 import typer
 
+from .common import _init_services
 from ..core.db import get_db
 from ..core.logger import log
 from ..utils.display_service import display
@@ -106,10 +109,10 @@ def schema(
 
 
 @db_cmds.command()
-def dump(
+def show(
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
-    """Dump all repository data from the database."""
+    """Show all repository data from the database."""
     if debug:
         log.set_debug(debug)
     try:
@@ -129,11 +132,65 @@ def dump(
 
 
 @db_cmds.command()
-def export(
-    output_dir: str = typer.Option(".", "--output-dir", "-o", help="Directory to save the CSV file"),
+def list(
+    sort_by: str = typer.Option("social_signal", "--sort", "-s", help="Sort by: social_signal, stars, age_days"),
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
 ):
-    """Export all repository data to a CSV file."""
+    """List all analyzed repositories in the database."""
+    if debug:
+        log.set_debug(debug)
+
+    valid_sort_fields = [
+        "social_signal",
+        "name",
+        "username",
+        "stars",
+        "age_days",
+        "last_analyzed",
+        "commit_count",
+    ]
+
+    if sort_by not in valid_sort_fields:
+        display.error(f"Invalid sort field '{sort_by}'. Valid options are: {', '.join(valid_sort_fields)}")
+        raise typer.Exit(1)
+
+    fields = [
+        "group",
+        "username",
+        "name",
+        "social_signal",
+        "stars",
+        "last_analyzed",
+        "date_created",
+    ]
+
+    try:
+        log.debug("Listing repositories")
+        service = _init_services()
+        log.debug("Getting all repositories")
+        repos = service.get_all_repositories(sort_by=sort_by)
+        log.debug("Displaying repositories")
+        display.show_repository_list(repos, fields)
+    except Exception as e:
+        display.error(f"Error listing repositories: {e}\n{traceback.format_exc()}")
+        raise typer.Exit(1)
+
+
+@db_cmds.command()
+def export(
+    output_dir: str = typer.Option(".", "--output-dir", "-o", help="Directory to save the CSV file"),
+    fields: List[str] = typer.Option(
+        None,
+        "--fields",
+        "-f",
+        help="Comma-separated list of fields to export. Default: all fields",
+    ),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+):
+    """Export repository data to a CSV file.
+
+    If no fields are specified, all fields will be exported.
+    """
     if debug:
         log.set_debug(debug)
     try:
@@ -142,7 +199,11 @@ def export(
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
 
-        filepath = db.export_to_csv(output_dir)
+        # Convert comma-separated string to list if needed
+        if fields and isinstance(fields, str):
+            fields = [f.strip() for f in fields.split(",")]
+
+        filepath = db.export_to_csv(output_dir, fields)
         display.success(f"Successfully exported data to: {filepath}")
     except Exception as e:
         display.error(f"Error exporting database contents: {e}")

@@ -12,10 +12,15 @@ config_cmds = typer.Typer()
 @config_cmds.command()
 def show(
     debug: bool = typer.Option(False, "--debug", help="Enable debug logging"),
+    db_path_only: bool = typer.Option(False, "--db-path", help="Show only database path"),
 ):
     """Show current configuration"""
     if debug:
         log.set_debug(debug)
+
+    if db_path_only:
+        print(str(PathManager.get_data_dir() / settings.database.filename))
+        return
 
     paths = {
         "Config directory": str(PathManager.get_config_dir()),
@@ -56,7 +61,7 @@ def init(
 
     # Initialize database
     try:
-        db = get_db()
+        get_db()
         log.debug(f"✓ Initialized database at {PathManager.get_data_dir() / settings.database.filename}")
         display.success("Initialization complete!")
     except Exception as e:
