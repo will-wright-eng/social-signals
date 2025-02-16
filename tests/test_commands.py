@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from sosig.main import app
 from typer.testing import CliRunner
@@ -22,7 +24,11 @@ def mock_db(mocker, tmp_path):
     if test_db_path.exists():
         test_db_path.unlink()
 
-    db = Database(db_path=f"sqlite:///{test_db_path}")
+    # Create a unique database URL for each test worker
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
+    db_path = f"sqlite:///{test_db_path}{worker_id}"
+
+    db = Database(db_path=db_path)
 
     # Patch get_db at the module level where it's imported
     mock = mocker.patch("sosig.core.db.get_db", return_value=db)

@@ -44,12 +44,15 @@ class Database:
 
     def _initialize_database(self) -> None:
         """Initialize database schema and validate models"""
-        # Check if tables exist before creating
-        inspector = inspect(self.engine)
-        existing_tables = inspector.get_table_names()
-        if "repositories" not in existing_tables:
-            models.Base.metadata.create_all(self.engine)
-        models.Repository.validate_fields()
+        with self.engine.connect() as conn:
+            # Use a transaction to handle concurrent initialization
+            with conn.begin():
+                # Check if tables exist before creating
+                inspector = inspect(self.engine)
+                existing_tables = inspector.get_table_names()
+                if "repositories" not in existing_tables:
+                    models.Base.metadata.create_all(self.engine)
+                models.Repository.validate_fields()
 
     @contextmanager
     def get_session(self) -> Generator[Session, None, None]:
