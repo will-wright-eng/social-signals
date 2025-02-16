@@ -43,9 +43,6 @@ SOSIG provides three main command groups:
 ```bash
 # Analyze repositories
 sosig gh analyze path/to/repo1 path/to/repo2
-
-# List analyzed repositories
-sosig gh list
 ```
 
 alternatively, you can use the bash scripts to analyze repos from a specific user
@@ -95,8 +92,17 @@ sosig db schema
 # Remove specific repository
 sosig db remove repo-name
 
+# Remove database
+sosig db remove --drop-db
+
 # Optimize database
 sosig db vacuum
+
+# Dump all data in repositories table
+sosig db show
+
+# List analyzed repositories
+sosig db list
 ```
 
 ### Configuration Operations (`config`)
@@ -111,7 +117,7 @@ sosig config show
 ```
 sosig/
 ├── src/sosig/
-│   ├── commands/          # CLI command implementations
+│   ├── commands/         # CLI command implementations
 │   ├── core/             # Core functionality and models
 │   └── utils/            # Utility functions and services
 ├── scripts/              # Helper scripts
@@ -134,7 +140,10 @@ The project includes several utility scripts:
 rye add pip
 rye sync
 rye build
+
 python -m pip install -e .
+# or
+source sosig/.venv/bin/activate
 ```
 
 ### Debug Mode
