@@ -46,9 +46,10 @@ class Database:
         """Initialize database schema and validate models"""
         # Check if tables exist before creating
         inspector = inspect(self.engine)
-        if "repositories" not in inspector.get_table_names():
+        existing_tables = inspector.get_table_names()
+        if "repositories" not in existing_tables:
             models.Base.metadata.create_all(self.engine)
-        models.Repository.validate_fields()  # Validate field consistency
+        models.Repository.validate_fields()
 
     @contextmanager
     def get_session(self) -> Generator[Session, None, None]:
