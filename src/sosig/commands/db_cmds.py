@@ -199,9 +199,9 @@ def export(
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
 
-        # Convert comma-separated string to list if needed
-        if fields and isinstance(fields, str):
-            fields = [f.strip() for f in fields.split(",")]
+        # Accept both `--fields a,b` and `--fields a --fields b`
+        if fields:
+            fields = [f.strip() for entry in fields for f in entry.split(",") if f.strip()]
 
         filepath = db.export_to_csv(output_dir, fields)
         display.success(f"Successfully exported data to: {filepath}")

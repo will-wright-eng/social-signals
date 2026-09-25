@@ -16,9 +16,10 @@ from ..core.interfaces import (
 class GitCommandError(Exception):
     """Raised when a git command fails"""
 
-    def __init__(self, message: str, command: str = None, stderr: str = None):
+    def __init__(self, message: str, command: str = None, stderr: str = None, returncode: int = None):
         self.command = command
         self.stderr = stderr
+        self.returncode = returncode
         super().__init__(
             f"Git command failed: {message}"
             + (f"\nCommand: {command}" if command else "")
@@ -57,6 +58,13 @@ class DefaultCommandRunner(CommandRunner):
                 message="Command execution failed",
                 command=" ".join(command),
                 stderr=e.stderr,
+                returncode=e.returncode,
+            )
+        except OSError as e:
+            raise GitCommandError(
+                message="Could not run command",
+                command=" ".join(command),
+                stderr=str(e),
             )
 
 
@@ -148,7 +156,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 self.repo_path,
             )
             return json.loads(repo_info)["stargazerCount"]
-        except subprocess.CalledProcessError as e:
+        except GitCommandError as e:
             msg = f"Could not fetch star count: {str(e)}"
             log.warning(msg)
             raise GitHubAPIError(
@@ -183,7 +191,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
                 self.repo_path,
             )
             return json.loads(repo_info)["owner"]["login"]
-        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
+        except (GitCommandError, json.JSONDecodeError, KeyError) as e:
             msg = f"Could not fetch repository username: {str(e)}"
             log.warning(msg)
             raise GitHubAPIError(
@@ -233,7 +241,7 @@ class GitHubAnalyzerImpl(GitHubAnalyzer, MetricsNormalizer):
             ):
                 return data["issues"]["totalCount"]
             return 0
-        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
+        except (GitCommandError, json.JSONDecodeError, KeyError) as e:
             log.warning(f"Could not fetch open issues: {str(e)}")
             return 0
 

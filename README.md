@@ -52,7 +52,7 @@ alternatively, you can use the bash scripts to analyze repos from a specific use
 make user-repos user=will-wright-eng
 
 # analyze each repo in list
-make analyze-repos user=will-wright-eng
+make analyze-repos dir=will-wright-eng
 ```
 
 you can create a custom list to analyze using the following steps
@@ -77,7 +77,7 @@ github.com/dineshba/tf-summarize
 EOF
 
 # analyze custom list of open source repos
-make analyze-repos user=tf
+make analyze-repos dir=tf
 ```
 
 ### Database Operations (`db`)

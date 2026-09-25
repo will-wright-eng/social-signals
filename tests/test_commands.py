@@ -113,6 +113,30 @@ def test_db_remove_with_confirmation(mocker, mock_db):
     assert "Successfully dropped database file" in result.stdout
 
 
+def test_config_init_reports_missing_tools(tmp_path):
+    """Test config init reports missing tools instead of crashing"""
+    result = runner.invoke(app, ["config", "init"], env={"PATH": str(tmp_path)})
+    assert result.exit_code == 1
+    assert "Missing required tools" in result.stdout
+
+
+@pytest.mark.parametrize("field_args", [["--fields", "name,stars"], ["--fields", "name", "--fields", "stars"]])
+def test_db_export_fields(mock_db, tmp_path, field_args):
+    """Test db export accepts comma-separated and repeated --fields"""
+    from sosig.core.models import Repository
+
+    with mock_db.return_value.get_session() as session:
+        session.add(
+            Repository(name="repo", path="/ws/repo", username="owner", social_signal=1.0, stars=5, date_created=0),
+        )
+
+    out_dir = tmp_path / "export"
+    result = runner.invoke(app, ["db", "export", "--output-dir", str(out_dir), *field_args])
+    assert result.exit_code == 0
+    (csv_file,) = out_dir.glob("*.csv")
+    assert csv_file.read_text().splitlines() == ["name,stars", "repo,5"]
+
+
 def test_import_has_no_filesystem_side_effects(tmp_path):
     """Importing the package must not create the data directory or database"""
     env = {**os.environ, "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CONFIG_HOME": str(tmp_path / "config")}

@@ -19,7 +19,7 @@ show_usage() {
     cat << EOF
 Usage: $(basename "$0") <username> [output_dir]
     username    GitHub username to fetch repositories for
-    output_dir  Optional: Directory to store output files (default: current directory)
+    output_dir  Optional: Directory to store output files (default: scripts/results/<username>)
 EOF
     exit 1
 }
@@ -75,7 +75,7 @@ main() {
     check_dependencies
 
     local username="$1"
-    local output_dir="$REPO_ROOT/results/$username"
+    local output_dir="${2:-$REPO_ROOT/scripts/results/$username}"
 
     # Create output directory if it doesn't exist
     mkdir -p "$output_dir"

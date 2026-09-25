@@ -10,7 +10,7 @@ validate_inputs() {
     if [ $# -lt 1 ]; then
         echo "Error: Input file path is required" >&2
         echo "Usage: $0 <input_file>"
-        echo "Example: $0 $REPO_ROOT/results/username/public_repo_urls.txt"
+        echo "Example: $0 $REPO_ROOT/scripts/results/username/public_repo_urls.txt"
         exit 1
     fi
 
@@ -49,10 +49,7 @@ analyze_repos() {
         fi
 
         echo "Analyzing: $url"
-        output=$(sosig gh analyze "$url" --group "$group_name" --debug 2>&1)
-        exit_code=$?
-
-        if [ $exit_code -eq 0 ]; then
+        if output=$(sosig gh analyze "$url" --group "$group_name" --debug 2>&1); then
             echo "Success: $url"
         else
             echo "Error analyzing $url"
