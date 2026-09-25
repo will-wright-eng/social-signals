@@ -3,7 +3,9 @@ name: Tests
 on:
   pull_request:
     paths:
-      - 'sosig/**'
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
       - '.github/workflows/tests.yml'
   workflow_dispatch:
 
@@ -32,7 +34,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd sosig
         uv venv
         source .venv/bin/activate
         uv pip install -e ".[dev]"
@@ -40,19 +41,18 @@ jobs:
 
     - name: Run tests
       run: |
-        cd sosig
         source .venv/bin/activate
         # First run tests sequentially to debug any issues
-        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v --cov=src/sosig --cov-report=xml --cov-report=term-missing
+        PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest tests/ -v --cov=src/sosig --cov-report=xml --cov-report=term-missing
         # Then run in parallel if sequential tests pass
-        # PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest ../tests/ -v -n 2
+        # PYTHONPATH=$PYTHONPATH:$(pwd)/src pytest tests/ -v -n 2
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v6
       continue-on-error: true
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: sosig/coverage.xml
+        file: coverage.xml
         fail_ci_if_error: false
 
     - name: Store test results
@@ -61,7 +61,7 @@ jobs:
       with:
         name: test-results-${{ matrix.python-version }}
         path: |
-          sosig/coverage.xml
-          sosig/.pytest_cache
-          sosig/.coverage
+          coverage.xml
+          .pytest_cache
+          .coverage
         retention-days: 30

@@ -15,21 +15,29 @@ class PathManager:
     """Manages XDG-compliant application paths"""
 
     @staticmethod
-    def get_data_dir() -> Path:
-        """Get XDG data directory for the application"""
+    def _data_dir_path() -> Path:
         base_dir = (
             Path(os.environ.get("XDG_DATA_HOME", ""))
             if os.environ.get("XDG_DATA_HOME")
             else Path.home() / ".local" / "share"
         )
-        data_dir = base_dir / PROJECT_NAME
+        return base_dir / PROJECT_NAME
+
+    @staticmethod
+    def get_data_dir() -> Path:
+        """Get XDG data directory for the application"""
+        data_dir = PathManager._data_dir_path()
         data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir
 
     @staticmethod
     def get_workspace_dir() -> Path:
-        """Get workspace directory for temporary repository operations"""
-        return PathManager.get_data_dir() / "workspace"
+        """Get workspace directory for temporary repository operations.
+
+        Not created here: `settings` resolves this at import time, and
+        `gh analyze` creates the workspace before using it.
+        """
+        return PathManager._data_dir_path() / "workspace"
 
     @staticmethod
     def get_config_dir() -> Path:

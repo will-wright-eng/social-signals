@@ -33,7 +33,6 @@ jobs:
         rye --version  # Verify installation
 
     - name: Build package
-      working-directory: sosig
       run: |
         source "$HOME/.rye/env"
         rye sync
@@ -43,4 +42,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_TOKEN }}
-        packages_dir: sosig/dist/
+        packages_dir: dist/

@@ -15,7 +15,7 @@ A command-line tool for analyzing GitHub repositories and calculating social sig
 ```bash
 # Clone the repository
 git clone https://github.com/will-wright-eng/social-signals.git
-cd social-signals/sosig/
+cd social-signals
 
 # Install dependencies (rye is the perferred project manager)
 rye sync
@@ -115,13 +115,15 @@ sosig config show
 ## Project Structure
 
 ```
-sosig/
+social-signals/
 ├── src/sosig/
 │   ├── commands/         # CLI command implementations
 │   ├── core/             # Core functionality and models
 │   └── utils/            # Utility functions and services
+├── tests/                # CLI tests
 ├── scripts/              # Helper scripts
 │   └── results/          # Analysis results
+├── pyproject.toml        # Package metadata
 └── requirements.lock     # Locked dependencies
 ```
 
@@ -137,13 +139,12 @@ The project includes several utility scripts:
 ### Setup
 
 ```bash
-rye add pip
 rye sync
 rye build
 
 python -m pip install -e .
 # or
-source sosig/.venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### Debug Mode
@@ -156,7 +157,7 @@ sosig gh analyze path/to/repo --debug
 
 ### Workspace Configuration
 
-Analysis operations use a workspace directory (default: `~/.local/share/ssig/workspace`):
+Analysis operations use a workspace directory (default: `~/.local/share/sosig/workspace`):
 
 ```bash
 sosig gh analyze path/to/repo --workspace /custom/path
@@ -462,3 +463,10 @@ sosig gh analyze path/to/repo --workspace /custom/path
 | falcosecurity        | falco           | 3315     | 234               | 4806         | 61          | 0.69                  | 7614   | 80.7          | 67615         |
 | lima-vm              | lima            | 1375     | 139               | 3878         | 315         | 0.35                  | 16165  | 80.0          | 80971         |
 | openebs              | openebs         | 3121     | 262               | 3014         | 36          | 1.04                  | 9153   | 79.7          | 22562         |
+
+## License
+
+Copyright (C) 2024-2026 Will Wright
+
+Licensed under the GNU General Public License, version 3 or (at your option) any
+later version. See [LICENSE](LICENSE).

@@ -1,6 +1,6 @@
 [project]
 name = "sosig"
-version = "0.3.0"
+version = "0.3.1"
 description = "A command-line tool for analyzing GitHub repositories and calculating social signals based on various metrics."
 authors = [
     { name = "will-wright-eng", email = "will.wright.engineeering@gmail.com" }
@@ -10,13 +10,14 @@ dependencies = [
     "rich>=13.9.4",
     "pydantic>=2.9.2",
     "sqlmodel>=0.0.22",
-    "pip>=24.3.1",
 ]
-readme = "../README.md"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 requires-python = ">= 3.10"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.rye]
@@ -33,12 +34,15 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 packages = ["src/sosig"]
 
+[tool.hatch.build.targets.sdist]
+include = ["/src/sosig", "/tests", "/README.md", "/LICENSE"]
+
 [project.scripts]
 sosig = "sosig:cli"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=sosig --cov-report=term-missing"
-testpaths = ["../tests"]
+testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["sosig"]

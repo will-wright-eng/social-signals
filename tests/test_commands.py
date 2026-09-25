@@ -1,8 +1,11 @@
 import os
+import sys
+import subprocess
 
 import pytest
-from sosig.main import app
 from typer.testing import CliRunner
+
+from sosig.main import app
 
 runner = CliRunner()
 
@@ -16,7 +19,6 @@ def temp_workspace(tmp_path):
 @pytest.fixture
 def mock_db(mocker, tmp_path):
     """Mock database interactions with a temporary database"""
-    import sosig
     from sosig.core.db import Database
 
     test_db_path = tmp_path / "test.db"
@@ -28,6 +30,8 @@ def mock_db(mocker, tmp_path):
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", "")
     db_path = f"sqlite:///{test_db_path}{worker_id}"
 
+    # Database is a singleton; reset it so this test gets its own temporary database
+    Database._instance = None
     db = Database(db_path=db_path)
 
     # Patch get_db at the module level where it's imported
@@ -36,12 +40,11 @@ def mock_db(mocker, tmp_path):
     mocker.patch("sosig.commands.db_cmds.get_db", return_value=db)
     mocker.patch("sosig.commands.config_cmds.get_db", return_value=db)
 
-    # Also patch the main db instance to avoid conflicts
-    sosig.db = db
-
     yield mock
 
     # Cleanup after test
+    db.engine.dispose()
+    Database._instance = None
     if test_db_path.exists():
         test_db_path.unlink()
 
@@ -108,3 +111,11 @@ def test_db_remove_with_confirmation(mocker, mock_db):
     result = runner.invoke(app, ["db", "remove", "--drop-db"], input="y\n")
     assert result.exit_code == 0
     assert "Successfully dropped database file" in result.stdout
+
+
+def test_import_has_no_filesystem_side_effects(tmp_path):
+    """Importing the package must not create the data directory or database"""
+    env = {**os.environ, "XDG_DATA_HOME": str(tmp_path / "data"), "XDG_CONFIG_HOME": str(tmp_path / "config")}
+    subprocess.run([sys.executable, "-c", "import sosig"], env=env, check=True)
+    assert not (tmp_path / "data").exists()
+    assert not (tmp_path / "config").exists()

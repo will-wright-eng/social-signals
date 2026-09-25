@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Get the absolute path to the repository root (assumes script is in scripts/ directory)
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VENV_PATH="$REPO_ROOT/sosig/.venv"
+VENV_PATH="$REPO_ROOT/.venv"
 
 validate_inputs() {
     if [ $# -lt 1 ]; then

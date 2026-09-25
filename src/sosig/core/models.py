@@ -55,7 +55,5 @@ class Repository(Base):
             missing = metrics_fields - repo_fields
             extra = repo_fields - metrics_fields
             raise ValueError(
-                f"Repository model fields don't match RepoMetrics:\n"
-                f"Missing fields: {missing}\n"
-                f"Extra fields: {extra}",
+                f"Repository model fields don't match RepoMetrics:\nMissing fields: {missing}\nExtra fields: {extra}",
             )
